@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_train"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.filip.tomasovych.keystrokeauthentication.app.activity.TrainActivity"
+    tools:showIn="@layout/activity_train">
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/trainPasswordInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/fab_margin">
+
+        <EditText
+            android:id="@+id/trainPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:inputType="textPassword" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <RelativeLayout
+        android:id="@+id/xK1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <include
+            android:id="@+id/xKeyBoard"
+            layout="@layout/keyboard"></include>
+
+        <include
+            android:id="@+id/numKeyBoard"
+            layout="@layout/keyboard_num"
+            android:visibility="gone"></include>
+
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/trainPasswordInputLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_weight="1"
+        android:visibility="invisible"
+        android:text="@string/start_training" />
+
+    <TextView
+        android:id="@+id/trainHintTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:id="@+id/counterTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/countProgressBar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/passwordHintTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/counterTextView"
+        android:layout_centerHorizontal="true"
+        android:visibility="invisible" />
+
+
+    <ProgressBar
+        android:id="@+id/countProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_margin="@dimen/fab_margin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="10"
+        android:layout_below="@+id/trainPasswordInputLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="14dp"
+        android:visibility="invisible" />
+
+</RelativeLayout>

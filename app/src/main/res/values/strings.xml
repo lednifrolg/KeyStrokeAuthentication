@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name">KeystrokeAuthentication</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Continue</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+
+    <string name="training_hint_practice">Vyskusaj si klavesnicu, stlac START ked si pripraveny zacat</string>
+    <string name="training_hint_thumb">Pis heslo iba s palcom, opakuj 10 krat</string>
+    <string name="training_hint_two_thumbs">Pis heslo s dvoma palcami, opakuj 10 krat</string>
+    <string name="training_hint_index">Pis heslo iba s ukazovakom, opakuj 10 krat</string>
+
+    <string name="title_activity_train">Normal password</string>
+
+    <string name="auth_radio_title">Authentication</string>
+    <string name="identify_radio_title">Identification</string>
+
+    <string name="k1">1</string>
+    <string name="k2">2</string>
+    <string name="k3">3</string>
+    <string name="k4">4</string>
+    <string name="k5">5</string>
+    <string name="k6">6</string>
+    <string name="k7">7</string>
+    <string name="k8">8</string>
+    <string name="k9">9</string>
+    <string name="k0">0</string>
+
+    <string name="q">q</string>
+    <string name="w">w</string>
+    <string name="e">e</string>
+    <string name="r">r</string>
+    <string name="t">t</string>
+    <string name="y">y</string>
+    <string name="u">u</string>
+    <string name="i">i</string>
+    <string name="o">o</string>
+    <string name="p">p</string>
+
+
+    <string name="a">a</string>
+    <string name="s">s</string>
+    <string name="d">d</string>
+    <string name="f">f</string>
+    <string name="g">g</string>
+    <string name="h">h</string>
+    <string name="j">j</string>
+    <string name="k">k</string>
+    <string name="l">l</string>
+
+    <string name="shift">\u21E7</string>
+    <string name="z">z</string>
+    <string name="x">x</string>
+    <string name="c">c</string>
+    <string name="v">v</string>
+    <string name="b">b</string>
+    <string name="n">n</string>
+    <string name="m">m</string>
+    <string name="backspace">\u232b</string>
+
+    <string name="SPACE">|____|</string>
+    <string name="DONE">DONE</string>
+    <string name="start_training">Start</string>
+    <string name="title_activity_second_stage">Num password</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="dot">.</string>
+
+</resources>

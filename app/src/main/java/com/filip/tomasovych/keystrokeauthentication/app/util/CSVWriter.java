@@ -13,6 +13,8 @@ import java.util.List;
 
 public class CSVWriter {
 
+    private final static String TAG = CSVWriter.class.getSimpleName();
+
     private static final char DEFAULT_SEPARATOR = ',';
 
     public static void writeLine(FileOutputStream w, List<String> values) throws IOException {
@@ -23,7 +25,7 @@ public class CSVWriter {
         writeLine(w, values, separators, ' ');
     }
 
-    //https://tools.ietf.org/html/rfc4180
+
     private static String followCVSformat(String value) {
 
         String result = value;

@@ -178,14 +178,14 @@ public class TrainActivity extends AppCompatActivity {
                 public void run() {
                     mStartButton.setVisibility(View.VISIBLE);
                 }
-            }, 20000);
+            }, 2000);
         } else {
             ret = mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mStartButton.setVisibility(View.VISIBLE);
                 }
-            }, 30000);
+            }, 3000);
         }
     }
 

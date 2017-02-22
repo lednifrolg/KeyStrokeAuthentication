@@ -1,6 +1,7 @@
 package com.filip.tomasovych.keystrokeauthentication.app.util;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.filip.tomasovych.keystrokeauthentication.app.database.DbHelper;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
@@ -55,8 +56,8 @@ public class KeyController {
     }
 
     private boolean saveCSV(KeyBuffer keyBuffer, int state) {
-        String csvFile = "TESTFIL.csv";
-        boolean ex = fileExists(csvFile);
+        String csvFile = "csvtest.csv";
+        boolean exists = fileExists(csvFile);
         FileOutputStream outputStream;
 
 
@@ -71,6 +72,7 @@ public class KeyController {
             columns.add("pressPressure" + i);
             columns.add("releasePressure" + i);
             columns.add("holdTime" + i);
+            columns.add("HPP" + i);
             columns.add("offSet" + i);
 
         }
@@ -80,30 +82,60 @@ public class KeyController {
             columns.add("UDTime" + i);
         }
 
-
-
         try {
-            outputStream = mContext.openFileOutput(csvFile, Context.MODE_PRIVATE);
+            outputStream = mContext.openFileOutput(csvFile, Context.MODE_PRIVATE | Context.MODE_APPEND);
 
-
-            if (!ex)
+            if (!exists)
                 CSVWriter.writeLine(outputStream, columns);
 
 
+            ArrayList<Long> pressed = new ArrayList<>();
+            ArrayList<Long> released = new ArrayList<>();
+            List<String> list = new ArrayList<>();
+
+            for (KeyObject key : keyBuffer.getBuffer()) {
+                pressed.add(key.getPressedTime());
+                released.add(key.getReleasedTime());
+
+                list.add(String.valueOf(key.getCoordXPressed()));
+                list.add(String.valueOf(key.getCoordYPressed()));
+                list.add(String.valueOf(key.getCoordXReleased()));
+                list.add(String.valueOf(key.getCoordYReleased()));
+                list.add(String.valueOf(key.getPressedPressure()));
+                list.add(String.valueOf(key.getReleasedPressure()));
+                list.add(String.valueOf(transformTimeStamp(key.getPressedTime(), key.getReleasedTime())));
+
+                double hpp = transformTimeStamp(key.getPressedTime(), key.getReleasedTime()) * key.getPressedPressure();
+                list.add(String.valueOf(hpp));
+
+                double offset = Math.hypot(key.getCoordXReleased() - key.getCenterXCoord(), key.getCoordYReleased() - key.getCenterYCoord());
+                list.add(String.valueOf(offset));
+            }
+
+
+            for (int i = 0; i < bufferSize - 1; i++) {
+                list.add(String.valueOf(transformTimeStamp(pressed.get(i), pressed.get(i + 1))));
+                list.add(String.valueOf(transformTimeStamp(released.get(i), pressed.get(i + 1))));
+            }
+
+            CSVWriter.writeLine(outputStream, list);
 
         } catch (IOException e) {
-
             e.printStackTrace();
             return false;
         }
 
-
         return true;
     }
 
+    private double transformTimeStamp(long firstTS, long secondTS) {
+        double result = secondTS - firstTS;
 
-    private boolean fileExists(String fname){
-        File file = mContext.getFileStreamPath(fname);
+        return result / 1000;
+    }
+
+    private boolean fileExists(String fileName) {
+        File file = mContext.getFileStreamPath(fileName);
         return file.exists();
     }
 

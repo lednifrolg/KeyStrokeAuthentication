@@ -1,7 +1,6 @@
 package com.filip.tomasovych.keystrokeauthentication.app.util;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.filip.tomasovych.keystrokeauthentication.app.database.DbHelper;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
@@ -49,19 +48,23 @@ public class KeyController {
             }
         }
 
-        saveCSV(keyBuffer, state);
+        if (state == 0)
+            saveCSV(keyBuffer, state);
+
         keyBuffer.clear();
+
+        Train t = new Train(mContext, mUser);
+        t.trainUser();
 
         return true;
     }
 
     private boolean saveCSV(KeyBuffer keyBuffer, int state) {
-        String csvFile = "csvtest.csv";
-        boolean exists = fileExists(csvFile);
-        FileOutputStream outputStream;
-
+        String csvFile = state + mUser.getName() + ".csv";
+        String typingFile = mUser.getName() + ".csv";
 
         int bufferSize = keyBuffer.getSize();
+
         List<String> columns = new ArrayList<>();
 
         for (int i = 0; i < bufferSize; i++) {
@@ -82,12 +85,23 @@ public class KeyController {
             columns.add("UDTime" + i);
         }
 
+        write(columns, csvFile, keyBuffer, -1);
+
+        columns.add("state");
+        write(columns, typingFile, keyBuffer, state);
+
+        return true;
+    }
+
+    private boolean write(List<String> columns, String csvFile, KeyBuffer keyBuffer, int state) {
+        boolean exists = fileExists(csvFile);
+        int bufferSize = keyBuffer.getSize();
+
         try {
-            outputStream = mContext.openFileOutput(csvFile, Context.MODE_PRIVATE | Context.MODE_APPEND);
+            FileOutputStream outputStream = mContext.openFileOutput(csvFile, Context.MODE_PRIVATE | Context.MODE_APPEND);
 
             if (!exists)
                 CSVWriter.writeLine(outputStream, columns);
-
 
             ArrayList<Long> pressed = new ArrayList<>();
             ArrayList<Long> released = new ArrayList<>();
@@ -112,11 +126,13 @@ public class KeyController {
                 list.add(String.valueOf(offset));
             }
 
-
             for (int i = 0; i < bufferSize - 1; i++) {
                 list.add(String.valueOf(transformTimeStamp(pressed.get(i), pressed.get(i + 1))));
                 list.add(String.valueOf(transformTimeStamp(released.get(i), pressed.get(i + 1))));
             }
+
+            if (state != -1)
+                list.add(String.valueOf(state));
 
             CSVWriter.writeLine(outputStream, list);
 

@@ -61,7 +61,6 @@ public class TrainActivity extends AppCompatActivity {
     private Handler mHandler = new Handler();
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,7 +124,7 @@ public class TrainActivity extends AppCompatActivity {
 
                                 Log.d(TAG, "Done: Counter: " + mCounter);
 
-                                mCounterTextView.setText(Integer.toString(mCounter)  + "/10");
+                                mCounterTextView.setText(Integer.toString(mCounter) + "/10");
                             }
 
                             mErrorsNum = 0;
@@ -160,6 +159,7 @@ public class TrainActivity extends AppCompatActivity {
                 mStartButton.setVisibility(View.GONE);
             }
         });
+
 
         mKeyController = new KeyController(getApplicationContext(), mUser);
 
@@ -226,8 +226,6 @@ public class TrainActivity extends AppCompatActivity {
         mLetterButtons = new Button[mQWERTY.length()];
         mKeyObjects = new KeyObject[mQWERTY.length() + 10];
         mIsShiftPressed = false;
-
-
 
 
         for (int i = 0; i < mQWERTY.length(); i++) {

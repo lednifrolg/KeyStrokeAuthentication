@@ -30,4 +30,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-beta3'
     compile 'nz.ac.waikato.cms.weka:LibSVM:1.0.10'
+    compile 'com.opencsv:opencsv:3.9'
 }

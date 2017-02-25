@@ -48,13 +48,11 @@ public class KeyController {
             }
         }
 
-        if (state == 0)
+        if (errors == 0)
             saveCSV(keyBuffer, state);
 
         keyBuffer.clear();
 
-        Train t = new Train(mContext, mUser);
-        t.trainUser();
 
         return true;
     }
@@ -154,5 +152,4 @@ public class KeyController {
         File file = mContext.getFileStreamPath(fileName);
         return file.exists();
     }
-
 }

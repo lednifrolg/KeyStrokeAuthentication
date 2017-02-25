@@ -88,6 +88,7 @@ public class SecondStageActivity extends AppCompatActivity {
 
         mDbHelper = DbHelper.getInstance(getApplicationContext());
 
+
         if (!mIsIdentify)
             showStartupDialog();
     }

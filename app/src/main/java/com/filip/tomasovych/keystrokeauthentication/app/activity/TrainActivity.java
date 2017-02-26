@@ -22,8 +22,10 @@ import com.filip.tomasovych.keystrokeauthentication.R;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyObject;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
+import com.filip.tomasovych.keystrokeauthentication.app.util.AnomalyDetector;
 import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
 import com.filip.tomasovych.keystrokeauthentication.app.util.KeyController;
+import com.filip.tomasovych.keystrokeauthentication.app.util.Train;
 
 public class TrainActivity extends AppCompatActivity {
 
@@ -118,6 +120,7 @@ public class TrainActivity extends AppCompatActivity {
                         if (mCounter < 10) {
 
                             if (mState != 0 && mState != 4) {
+                                new AnomalyDetector(mUser.getName(), getApplicationContext()).evaluateEntry(mKeyBuffer, mState);
                                 mKeyController.save(mKeyBuffer, mState, 0);
 
                                 mCounter++;
@@ -430,6 +433,7 @@ public class TrainActivity extends AppCompatActivity {
                 showAlertDialog("Pis heslo iba s ukazovakom, opakuj 10 krat");
                 break;
             case 4:
+                new Train(getApplicationContext(), mUser).trainUser();
                 Intent intent = new Intent(TrainActivity.this, SecondStageActivity.class);
                 intent.putExtra(Helper.USER_NAME, mUser.getName());
                 intent.putExtra(Helper.IS_IDENTIFY, mIsIdentify);

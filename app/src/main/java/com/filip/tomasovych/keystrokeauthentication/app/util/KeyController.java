@@ -101,33 +101,8 @@ public class KeyController {
             if (!exists)
                 CSVWriter.writeLine(outputStream, columns);
 
-            ArrayList<Long> pressed = new ArrayList<>();
-            ArrayList<Long> released = new ArrayList<>();
-            List<String> list = new ArrayList<>();
 
-            for (KeyObject key : keyBuffer.getBuffer()) {
-                pressed.add(key.getPressedTime());
-                released.add(key.getReleasedTime());
-
-                list.add(String.valueOf(key.getCoordXPressed()));
-                list.add(String.valueOf(key.getCoordYPressed()));
-                list.add(String.valueOf(key.getCoordXReleased()));
-                list.add(String.valueOf(key.getCoordYReleased()));
-                list.add(String.valueOf(key.getPressedPressure()));
-                list.add(String.valueOf(key.getReleasedPressure()));
-                list.add(String.valueOf(transformTimeStamp(key.getPressedTime(), key.getReleasedTime())));
-
-                double hpp = transformTimeStamp(key.getPressedTime(), key.getReleasedTime()) * key.getPressedPressure();
-                list.add(String.valueOf(hpp));
-
-                double offset = Math.hypot(key.getCoordXReleased() - key.getCenterXCoord(), key.getCoordYReleased() - key.getCenterYCoord());
-                list.add(String.valueOf(offset));
-            }
-
-            for (int i = 0; i < bufferSize - 1; i++) {
-                list.add(String.valueOf(transformTimeStamp(pressed.get(i), pressed.get(i + 1))));
-                list.add(String.valueOf(transformTimeStamp(released.get(i), pressed.get(i + 1))));
-            }
+            List<String> list = transformKeyBuffer(keyBuffer);
 
             if (state != -1)
                 list.add(String.valueOf(state));
@@ -142,7 +117,40 @@ public class KeyController {
         return true;
     }
 
-    private double transformTimeStamp(long firstTS, long secondTS) {
+    public static List<String> transformKeyBuffer(KeyBuffer keyBuffer) {
+        ArrayList<Long> pressed = new ArrayList<>();
+        ArrayList<Long> released = new ArrayList<>();
+        List<String> list = new ArrayList<>();
+
+        for (KeyObject key : keyBuffer.getBuffer()) {
+            pressed.add(key.getPressedTime());
+            released.add(key.getReleasedTime());
+
+            list.add(String.valueOf(key.getCoordXPressed()));
+            list.add(String.valueOf(key.getCoordYPressed()));
+            list.add(String.valueOf(key.getCoordXReleased()));
+            list.add(String.valueOf(key.getCoordYReleased()));
+            list.add(String.valueOf(key.getPressedPressure()));
+            list.add(String.valueOf(key.getReleasedPressure()));
+            list.add(String.valueOf(transformTimeStamp(key.getPressedTime(), key.getReleasedTime())));
+
+            double hpp = transformTimeStamp(key.getPressedTime(), key.getReleasedTime()) * key.getPressedPressure();
+            list.add(String.valueOf(hpp));
+
+            double offset = Math.hypot(key.getCoordXReleased() - key.getCenterXCoord(), key.getCoordYReleased() - key.getCenterYCoord());
+            list.add(String.valueOf(offset));
+        }
+
+        for (int i = 0; i < keyBuffer.getSize() - 1; i++) {
+            list.add(String.valueOf(transformTimeStamp(pressed.get(i), pressed.get(i + 1))));
+            list.add(String.valueOf(transformTimeStamp(released.get(i), pressed.get(i + 1))));
+        }
+
+        return list;
+    }
+
+
+    public static double transformTimeStamp(long firstTS, long secondTS) {
         double result = secondTS - firstTS;
 
         return result / 1000;

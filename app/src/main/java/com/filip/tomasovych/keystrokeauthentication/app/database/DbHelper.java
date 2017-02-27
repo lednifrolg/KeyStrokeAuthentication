@@ -30,6 +30,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String TABLE_EXPERIMENT_TYPE = "ExperimentType";
     private static final String TABLE_EXPERIMENT = "Experiment";
     private static final String TABLE_KEY_DATA = "KeyData";
+    private static final String TABLE_OUTLIER_THRESHOLD = "OutlierThreshold";
 
     // User columns
     private static final String USER_ID = "id";
@@ -49,7 +50,14 @@ public class DbHelper extends SQLiteOpenHelper {
     // KeyData columns
     private static final String KEY_DATA_ID = "id";
     private static final String KEY_DATA_ID_EXPERIMENT = "experimentId";
-//    private static final String KEY_DATA_KEY_NUM = "keyNum";
+
+    // OutlierThreshold columns
+    private static final String OUTLIER_THRESHOLD_ID = "id";
+    private static final String OUTLIER_THRESHOLD_ID_USER = "userId";
+    private static final String OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID = "experimentTypeId";
+    private static final String OUTLIER_THRESHOLD_VALUE = "thresholdValue";
+
+    // private static final String KEY_DATA_KEY_NUM = "keyNum";
     private static final String KEY_DATA_KEY_PRESS_TIME = "keyPressTime";
     private static final String KEY_DATA_KEY_RELEASE_TIME = "keyReleaseTime";
     private static final String KEY_DATA_X_COORD_PRESS = "xCoordPress";
@@ -146,10 +154,21 @@ public class DbHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY (" + KEY_DATA_ID_EXPERIMENT + ") REFERENCES " + TABLE_EXPERIMENT + "(" + EXPERIMENT_ID + ")" +
                 ")";
 
+        String CREATE_OUTLIER_THRESHOLD_TABLE = "CREATE TABLE " + TABLE_OUTLIER_THRESHOLD +
+                "(" +
+                OUTLIER_THRESHOLD_ID + " INTEGER PRIMARY KEY," +
+                OUTLIER_THRESHOLD_ID_USER + " INTEGER," +
+                OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + " INTEGER," +
+                OUTLIER_THRESHOLD_VALUE + " REAL," +
+                "FOREIGN KEY (" + OUTLIER_THRESHOLD_ID_USER + ") REFERENCES " + TABLE_USER + "(" + USER_ID + ")" +
+                "FOREIGN KEY (" + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + ") REFERENCES " + TABLE_EXPERIMENT_TYPE + "(" + EXPERIMENT_TYPE_ID + ")" +
+                ")";
+
         db.execSQL(CREATE_USER_TABLE);
         db.execSQL(CREATE_EXPERIMENT_TYPE_TABLE);
         db.execSQL(CREATE_EXPERIMENT_TABLE);
         db.execSQL(CREATE_KEY_DATA_TABLE);
+        db.execSQL(CREATE_OUTLIER_THRESHOLD_TABLE);
     }
 
     /**
@@ -295,7 +314,6 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     /**
-     *
      * @param experimentId
      * @param keyObject
      * @return
@@ -336,4 +354,65 @@ public class DbHelper extends SQLiteOpenHelper {
         return result;
     }
 
+
+    /**
+     * Set threshold value used for anomaly detection
+     * @param type
+     * @param user
+     * @param thresholdValue
+     * @return
+     */
+    public long setThresholdValue(int type, User user, double thresholdValue){
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+
+        long result = -1;
+
+        try {
+            ContentValues values = new ContentValues();
+
+            values.put(OUTLIER_THRESHOLD_ID_USER, user.getId());
+            values.put(OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID, type);
+            values.put(OUTLIER_THRESHOLD_VALUE, thresholdValue);
+
+            result = db.insertOrThrow(TABLE_OUTLIER_THRESHOLD, null, values);
+            db.setTransactionSuccessful();
+
+            Log.d(TAG, "setThresholdValue value : " + thresholdValue);
+            Log.d(TAG, "setThresholdValue result : " + result);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Log.d(TAG, "Error while setting threshold value");
+        } finally {
+            db.endTransaction();
+        }
+
+        return result;
+    }
+
+
+
+    public double getThresholdValue(User user, int type) {
+                String query = "SELECT * FROM " + TABLE_OUTLIER_THRESHOLD +
+                " WHERE " + OUTLIER_THRESHOLD_ID_USER + " = '" + user.getId() +
+                "' AND " + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + " = '" + type + "'";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+        double threshold = 0;
+        try {
+            if (cursor.moveToFirst())
+                threshold = cursor.getDouble(cursor.getColumnIndex(OUTLIER_THRESHOLD_VALUE));
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d(TAG, "Error getting threshold value from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return threshold;
+    }
 }

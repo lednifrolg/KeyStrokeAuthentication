@@ -120,7 +120,7 @@ public class TrainActivity extends AppCompatActivity {
                         if (mCounter < 10) {
 
                             if (mState != 0 && mState != 4) {
-                                new AnomalyDetector(mUser.getName(), getApplicationContext()).evaluateEntry(mKeyBuffer, mState);
+//                                new AnomalyDetector(mUser.getName(), getApplicationContext()).evaluateEntry(mKeyBuffer, mState);
                                 mKeyController.save(mKeyBuffer, mState, 0);
 
                                 mCounter++;

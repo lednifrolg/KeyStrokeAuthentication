@@ -1,9 +1,12 @@
 package com.filip.tomasovych.keystrokeauthentication.app.util;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.filip.tomasovych.keystrokeauthentication.app.database.DbHelper;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
+import com.filip.tomasovych.keystrokeauthentication.app.model.User;
 import com.opencsv.CSVReader;
 
 import java.io.FileInputStream;
@@ -21,12 +24,14 @@ public class AnomalyDetector {
 
     private final static String TAG = AnomalyDetector.class.getSimpleName();
 
-    private String mName;
+    private User mUser;
     private Context mContext;
+    private DbHelper mDbHelper;
 
-    public AnomalyDetector(String name, Context context) {
+    public AnomalyDetector(User user, Context context) {
         mContext = context;
-        mName = name;
+        mUser = user;
+        mDbHelper = DbHelper.getInstance(context);
     }
 
 
@@ -45,14 +50,19 @@ public class AnomalyDetector {
         standardize(entry, means, stDevs);
         double mnDist = manhattanDistance(entry, model);
 
-        CharSequence toast = "Dist : " + mnDist;
-        Toast.makeText(mContext, toast, Toast.LENGTH_SHORT);
+        double threshold = mDbHelper.getThresholdValue(mUser, state);
+
+        Log.d(TAG, "Dist : " + mnDist);
+        Log.d(TAG, "Threshold : " + threshold);
+
+        if (mnDist < threshold)
+            return false;
 
         return true;
     }
 
     private ArrayList<Double> getManhattanModel(int state) {
-        String fileName = state + mName + "MODEL.csv";
+        String fileName = state + mUser.getName() + "MODEL.csv";
         ArrayList<Double> model = new ArrayList<>();
         CSVReader csvReader;
 
@@ -79,7 +89,7 @@ public class AnomalyDetector {
 
     private void getNormalValues(ArrayList<Double> means, ArrayList<Double> stDevs, int state) {
         CSVReader csvReader;
-        String fileName = state + mName + "VALUES.csv";
+        String fileName = state + mUser.getName() + "VALUES.csv";
 
         try {
             FileInputStream inputStream = mContext.openFileInput(fileName);
@@ -106,7 +116,7 @@ public class AnomalyDetector {
         }
     }
 
-    private double manhattanDistance(ArrayList<Double> entry, ArrayList<Double> model) {
+    public static double manhattanDistance(ArrayList<Double> entry, ArrayList<Double> model) {
         double manDist = 0;
 
         if (entry.size() != model.size())
@@ -116,7 +126,7 @@ public class AnomalyDetector {
             manDist += Math.abs(entry.get(i) - model.get(i));
         }
 
-        return manDist;
+        return - manDist;
     }
 
     private void standardize(ArrayList<Double> entry, ArrayList<Double> means, ArrayList<Double> stDevs) {

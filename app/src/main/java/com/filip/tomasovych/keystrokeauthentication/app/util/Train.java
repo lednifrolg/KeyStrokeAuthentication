@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 
 /**
  * Created by nolofinwe on 24/02/17.
@@ -82,6 +83,7 @@ public class Train {
         return true;
     }
 
+
     private ArrayList<Integer> checkStates() {
         ArrayList<Integer> states = new ArrayList<>();
         for (int i = 1; i < 4; i++) {
@@ -110,7 +112,42 @@ public class Train {
 
         write(model, fileName);
 
+        createDistanceThreshold(columns, state, model);
+
         return true;
+    }
+
+    private void createDistanceThreshold(ArrayList<ArrayList<Double>> columns, int state, ArrayList<Double> model) {
+        int r = columns.get(0).size();
+        ArrayList<ArrayList<Double>> rows = new ArrayList<>(r);
+        ArrayList<Double> distances = new ArrayList<>();
+        double threshold = 0;
+
+        for (int i = 0; i < r; i++) {
+            rows.add(new ArrayList<Double>());
+            for (ArrayList<Double> col : columns) {
+                rows.get(i).add(col.get(i));
+            }
+        }
+
+        double min = 0;
+
+        for (ArrayList<Double> row : rows) {
+            double dist = AnomalyDetector.manhattanDistance(row, model);
+            distances.add(dist);
+
+            if (dist < min)
+                min = dist;
+        }
+
+        double mean = mean(distances);
+        double std = stDev(distances, mean);
+
+        threshold = min - Math.abs(mean / 2) + std;
+
+        mDbHelper.setThresholdValue(state, mUser, threshold);
+
+        return;
     }
 
 

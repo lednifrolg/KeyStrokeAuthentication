@@ -419,6 +419,7 @@ public class TrainActivity extends AppCompatActivity {
         switch (mState) {
             case 1:
             case 5:
+                new Train(getApplicationContext(), mUser).trainUser();
                 mTrainHintTextView.setText(R.string.training_hint_thumb);
                 showAlertDialog("Pis heslo iba s palcom, opakuj 10 krat");
                 break;

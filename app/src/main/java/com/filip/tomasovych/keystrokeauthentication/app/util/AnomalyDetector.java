@@ -116,6 +116,7 @@ public class AnomalyDetector {
         }
     }
 
+
     public static double manhattanDistance(ArrayList<Double> entry, ArrayList<Double> model) {
         double manDist = 0;
 
@@ -126,7 +127,7 @@ public class AnomalyDetector {
             manDist += Math.abs(entry.get(i) - model.get(i));
         }
 
-        return - manDist;
+        return -manDist;
     }
 
     private void standardize(ArrayList<Double> entry, ArrayList<Double> means, ArrayList<Double> stDevs) {

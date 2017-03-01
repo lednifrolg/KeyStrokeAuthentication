@@ -65,7 +65,7 @@ public class AnomalyDetector {
 
     private void getStyle(KeyBuffer keyBuffer) {
         try {
-            FileInputStream model = mContext.openFileInput("SVMMODEL");
+            FileInputStream model = mContext.openFileInput(mUser.getName() + "SVM");
             FileInputStream vals =mContext.openFileInput(mUser.getName() + "VALUES.csv");
 
             Evaluator.predictTypingStyle(model, vals, keyBuffer);

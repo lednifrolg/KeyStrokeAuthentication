@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="weka-stable-3.8.1-SNAPSHOT-sources">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/libs/weka-stable-3.8.1-SNAPSHOT-sources.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

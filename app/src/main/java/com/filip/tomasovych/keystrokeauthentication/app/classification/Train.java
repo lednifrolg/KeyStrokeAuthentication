@@ -331,9 +331,7 @@ public class Train {
         labelValues.add("1.0");
         labelValues.add("2.0");
         labelValues.add("3.0");
-        labelValues.add("5.0");
-        labelValues.add("6.0");
-        labelValues.add("7.0");
+
 
         for (String label : labels) {
             if (label.equals("state"))
@@ -349,6 +347,9 @@ public class Train {
 
             for (int i = 0; i < row.size(); i++) {
                 vals[i] = row.get(i);
+
+                if (i == row.size() - 1)
+                    vals[i] = labelValues.indexOf(String.valueOf((double) row.get(i)));
             }
 
             data.add(new DenseInstance(1.0, vals));
@@ -361,7 +362,7 @@ public class Train {
             //svm.setOptions(weka.core.Utils.splitOptions("-S 0 -K 0 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 40.0 -C 1.0 -E 0.001 -P 0.1"));
             svm.buildClassifier(data);
 
-            FileOutputStream outputStream = mContext.openFileOutput("SVMMODEL", Context.MODE_APPEND);
+            FileOutputStream outputStream = mContext.openFileOutput(mUser.getName() + "SVM", Context.MODE_APPEND);
             SerializationHelper.write(outputStream, svm);
         } catch (Exception e) {
             e.printStackTrace();

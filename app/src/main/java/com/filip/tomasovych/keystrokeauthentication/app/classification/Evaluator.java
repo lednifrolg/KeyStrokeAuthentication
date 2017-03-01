@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import weka.classifiers.Classifier;
+import weka.classifiers.functions.SMO;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -27,13 +28,15 @@ import weka.core.SerializationHelper;
 
 public final class Evaluator {
 
+    private final static String TAG = Evaluator.class.getSimpleName();
+
     public static int predictTypingStyle(FileInputStream modelInputStream, FileInputStream valuesInputStream, KeyBuffer keyBuffer) {
         int style = -1;
         ArrayList<Double> entry = new ArrayList<>();
         List<String> labels = preprocessEntry(keyBuffer, valuesInputStream, entry);
 
         try {
-            Classifier SVM = (Classifier) SerializationHelper.read(modelInputStream);
+            SMO SVM = (SMO) SerializationHelper.read(modelInputStream);
 
             ArrayList<Attribute> atts = new ArrayList<>();
             double[] vals;
@@ -42,9 +45,7 @@ public final class Evaluator {
             labelValues.add("1.0");
             labelValues.add("2.0");
             labelValues.add("3.0");
-            labelValues.add("5.0");
-            labelValues.add("6.0");
-            labelValues.add("7.0");
+
 
             for (String label : labels) {
                 atts.add(new Attribute(label, false));
@@ -66,6 +67,7 @@ public final class Evaluator {
 
             double pred = SVM.classifyInstance(dataset.instance(0));
 //            System.out.println(dataset.classAttribute().value((int) pred));
+
             Log.d("ASDDDDDDD", "PRED : " + dataset.classAttribute().value((int) pred));
         } catch (Exception e) {
             e.printStackTrace();

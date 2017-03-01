@@ -1,10 +1,11 @@
-package com.filip.tomasovych.keystrokeauthentication.app.util;
+package com.filip.tomasovych.keystrokeauthentication.app.classification;
 
 import android.content.Context;
 import android.util.Log;
 
 import com.filip.tomasovych.keystrokeauthentication.app.database.DbHelper;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
+import com.filip.tomasovych.keystrokeauthentication.app.util.CSVWriter;
 import com.opencsv.CSVReader;
 
 import java.io.FileInputStream;
@@ -15,7 +16,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.SMO;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -142,7 +142,7 @@ public class Train {
         double min = 0;
 
         for (ArrayList<Double> row : rows) {
-            double dist = AnomalyDetector.manhattanDistance(row, model);
+            double dist = Evaluator.manhattanDistance(row, model);
             distances.add(dist);
 
             if (dist < min)
@@ -331,7 +331,9 @@ public class Train {
         labelValues.add("1.0");
         labelValues.add("2.0");
         labelValues.add("3.0");
-        labelValues.add("4.0");
+        labelValues.add("5.0");
+        labelValues.add("6.0");
+        labelValues.add("7.0");
 
         for (String label : labels) {
             if (label.equals("state"))
@@ -352,8 +354,6 @@ public class Train {
             data.add(new DenseInstance(1.0, vals));
         }
 
-        //Log.d(TAG, data.toString());
-
         data.setClassIndex(data.numAttributes() - 1);
         SMO svm = new SMO();
 
@@ -361,7 +361,8 @@ public class Train {
             //svm.setOptions(weka.core.Utils.splitOptions("-S 0 -K 0 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 40.0 -C 1.0 -E 0.001 -P 0.1"));
             svm.buildClassifier(data);
 
-//            SerializationHelper.write("model", svm);
+            FileOutputStream outputStream = mContext.openFileOutput("SVMMODEL", Context.MODE_APPEND);
+            SerializationHelper.write(outputStream, svm);
         } catch (Exception e) {
             e.printStackTrace();
         }

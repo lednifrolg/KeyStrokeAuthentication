@@ -19,13 +19,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.filip.tomasovych.keystrokeauthentication.R;
+import com.filip.tomasovych.keystrokeauthentication.app.classification.AnomalyDetector;
+import com.filip.tomasovych.keystrokeauthentication.app.classification.Evaluator;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyObject;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
-import com.filip.tomasovych.keystrokeauthentication.app.util.AnomalyDetector;
 import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
 import com.filip.tomasovych.keystrokeauthentication.app.util.KeyController;
-import com.filip.tomasovych.keystrokeauthentication.app.util.Train;
+import com.filip.tomasovych.keystrokeauthentication.app.classification.Train;
 
 public class TrainActivity extends AppCompatActivity {
 
@@ -120,7 +121,7 @@ public class TrainActivity extends AppCompatActivity {
                         if (mCounter < 10) {
 
                             if (mState != 0 && mState != 4) {
-//                                new AnomalyDetector(mUser.getName(), getApplicationContext()).evaluateEntry(mKeyBuffer, mState);
+                                new AnomalyDetector(mUser, getApplicationContext()).evaluateEntry(mKeyBuffer, mState);
                                 mKeyController.save(mKeyBuffer, mState, 0);
 
                                 mCounter++;
@@ -419,7 +420,7 @@ public class TrainActivity extends AppCompatActivity {
         switch (mState) {
             case 1:
             case 5:
-                new Train(getApplicationContext(), mUser).trainUser();
+                //new Train(getApplicationContext(), mUser).trainUser();
                 mTrainHintTextView.setText(R.string.training_hint_thumb);
                 showAlertDialog("Pis heslo iba s palcom, opakuj 10 krat");
                 break;

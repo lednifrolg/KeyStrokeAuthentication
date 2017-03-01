@@ -160,4 +160,30 @@ public class KeyController {
         File file = mContext.getFileStreamPath(fileName);
         return file.exists();
     }
+
+    public static List<String> getLabels(KeyBuffer keyBuffer) {
+        int bufferSize = keyBuffer.getSize();
+
+        List<String> columns = new ArrayList<>();
+
+        for (int i = 0; i < bufferSize; i++) {
+            columns.add("xCoordPress" + i);
+            columns.add("yCoordPress" + i);
+            columns.add("xCoordRelease" + i);
+            columns.add("yCoordRelease" + i);
+            columns.add("pressPressure" + i);
+            columns.add("releasePressure" + i);
+            columns.add("holdTime" + i);
+            columns.add("HPP" + i);
+            columns.add("offSet" + i);
+
+        }
+
+        for (int i = 0; i < bufferSize - 1; i++) {
+            columns.add("PPTime" + i);
+            columns.add("UDTime" + i);
+        }
+
+        return columns;
+    }
 }

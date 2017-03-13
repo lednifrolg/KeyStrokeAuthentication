@@ -10,6 +10,10 @@ import android.util.Log;
 
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyObject;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
+import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by nolofinwe on 4.10.2016.
@@ -23,7 +27,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     // Database info
     private static final String DATABASE_NAME = "KeystrokeDynamics.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 5;
 
     // Table names
     private static final String TABLE_USER = "User";
@@ -164,10 +168,10 @@ public class DbHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY (" + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + ") REFERENCES " + TABLE_EXPERIMENT_TYPE + "(" + EXPERIMENT_TYPE_ID + ")" +
                 ")";
 
-        db.execSQL(CREATE_USER_TABLE);
-        db.execSQL(CREATE_EXPERIMENT_TYPE_TABLE);
-        db.execSQL(CREATE_EXPERIMENT_TABLE);
-        db.execSQL(CREATE_KEY_DATA_TABLE);
+//        db.execSQL(CREATE_USER_TABLE);
+//        db.execSQL(CREATE_EXPERIMENT_TYPE_TABLE);
+//        db.execSQL(CREATE_EXPERIMENT_TABLE);
+//        db.execSQL(CREATE_KEY_DATA_TABLE);
         db.execSQL(CREATE_OUTLIER_THRESHOLD_TABLE);
     }
 
@@ -198,7 +202,7 @@ public class DbHelper extends SQLiteOpenHelper {
             Log.d(TAG, "OLDVERSION DB != NEWVERSION");
 //            db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERdETAIL);
 
-            //onCreate(db);
+            onCreate(db);
         }
     }
 
@@ -354,15 +358,40 @@ public class DbHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    public List<String> getUsersForIdentifiaction() {
+        List<String> userNames = new ArrayList<>();
+
+        String query = "SELECT * FROM " + TABLE_USER +
+                " WHERE " + USER_PASSWORD + " LIKE '" + Helper.STATIC_PASSWORD + "'";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        try {
+            while (cursor.moveToNext()) {
+                userNames.add(cursor.getString(cursor.getColumnIndex(USER_NAME)));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d(TAG, "Error getting user names from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return userNames;
+    }
 
     /**
      * Set threshold value used for anomaly detection
+     *
      * @param type
      * @param user
      * @param thresholdValue
      * @return
      */
-    public long setThresholdValue(int type, User user, double thresholdValue){
+    public long setThresholdValue(int type, User user, double thresholdValue) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
 
@@ -391,9 +420,8 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
-
     public double getThresholdValue(User user, int type) {
-                String query = "SELECT * FROM " + TABLE_OUTLIER_THRESHOLD +
+        String query = "SELECT * FROM " + TABLE_OUTLIER_THRESHOLD +
                 " WHERE " + OUTLIER_THRESHOLD_ID_USER + " = '" + user.getId() +
                 "' AND " + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + " = '" + type + "'";
 
@@ -414,5 +442,18 @@ public class DbHelper extends SQLiteOpenHelper {
         }
 
         return threshold;
+    }
+
+    public void deleteUser(User user) {
+//        String query = "DELETE FROM " + TABLE_USER + " WHERE " + USER_ID + " = " + user.getId();
+
+        SQLiteDatabase database = this.getWritableDatabase();
+
+        //Execute sql query to remove from database
+        //NOTE: When removing by String in SQL, value must be enclosed with ''
+        database.execSQL("DELETE FROM " + TABLE_USER + " WHERE " + USER_ID + "= '" + user.getId() + "'");
+
+        //Close the database
+        database.close();
     }
 }

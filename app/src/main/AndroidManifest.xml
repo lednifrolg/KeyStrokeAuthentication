@@ -30,7 +30,8 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".app.activity.SecondStageActivity"
-            android:label="@string/title_activity_second_stage"></activity>
+            android:label="@string/title_activity_second_stage" />
+        <activity android:name=".app.activity.StartActivity"></activity>
     </application>
 
 </manifest>

@@ -6,6 +6,7 @@ import android.util.Log;
 import com.filip.tomasovych.keystrokeauthentication.app.database.DbHelper;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
+import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
 import com.filip.tomasovych.keystrokeauthentication.app.util.KeyController;
 import com.opencsv.CSVReader;
 
@@ -35,13 +36,12 @@ public class AnomalyDetector {
     }
 
 
-    public boolean evaluateEntry(KeyBuffer keyBuffer, int state) {
-        getStyle(keyBuffer);
-        if (true)
-            return true;
+    public boolean evaluateEntry(KeyBuffer keyBuffer, int passwordCode) {
+        int style = getStyle(keyBuffer, passwordCode);
+
         ArrayList<Double> entry = new ArrayList<>();
-        ArrayList<Double> model = getManhattanModel(state);
-        String fileName = state + mUser.getName() + "VALUES.csv";
+        ArrayList<Double> model = getManhattanModel(style);
+        String fileName = style + mUser.getName() + "VALUES.csv";
         try {
             FileInputStream inputStream = mContext.openFileInput(fileName);
             List<String> labels = Evaluator.preprocessEntry(keyBuffer, inputStream, entry);
@@ -52,8 +52,9 @@ public class AnomalyDetector {
 
         double mnDist = Evaluator.manhattanDistance(entry, model);
 
-        double threshold = mDbHelper.getThresholdValue(mUser, state);
+        double threshold = mDbHelper.getThresholdValue(mUser, style);
 
+        Log.d(TAG, "Style : " + style);
         Log.d(TAG, "Dist : " + mnDist);
         Log.d(TAG, "Threshold : " + threshold);
 
@@ -63,15 +64,25 @@ public class AnomalyDetector {
         return true;
     }
 
-    private void getStyle(KeyBuffer keyBuffer) {
+    private int getStyle(KeyBuffer keyBuffer, int passwordCode) {
         try {
-            FileInputStream model = mContext.openFileInput(mUser.getName() + "SVM");
-            FileInputStream vals =mContext.openFileInput(mUser.getName() + "VALUES.csv");
+            FileInputStream model = null;
+            FileInputStream vals = null;
 
-            Evaluator.predictTypingStyle(model, vals, keyBuffer);
+            if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+                model = mContext.openFileInput(mUser.getName() + "SVMALNUM");
+                vals = mContext.openFileInput(mUser.getName() + "VALUESALNUM.csv");
+            } else if (passwordCode == Helper.NUM_PASSWORD_CODE) {
+                model = mContext.openFileInput(mUser.getName() + "SVMNUM");
+                vals = mContext.openFileInput(mUser.getName() + "VALUESNUM.csv");
+            }
+
+            return Evaluator.predictTypingStyle(model, vals, keyBuffer);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
+        return -1;
     }
 
 

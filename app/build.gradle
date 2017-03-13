@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "com.filip.tomasovych.keystrokeauthentication"
         minSdkVersion 23
@@ -24,12 +24,12 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    compile files('libs/LibSVM-1.0.4.jar')
+    compile files('libs/weka-stable-3.8.1-SNAPSHOT.jar')
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:design:24.2.1'
     compile 'com.android.support:support-v4:24.2.1'
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta3'
     compile 'com.opencsv:opencsv:3.9'
-    compile files('libs/LibSVM-1.0.4.jar')
-    compile files('libs/weka-stable-3.8.1-SNAPSHOT.jar')
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
 }

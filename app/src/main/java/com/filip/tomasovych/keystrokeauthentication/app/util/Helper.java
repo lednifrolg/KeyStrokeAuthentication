@@ -13,4 +13,6 @@ public final class Helper {
     public static final String IS_IDENTIFY = "IsIdentify";
     public static String STATIC_NUM_PASSWORD = "67804910";
     public static String STATIC_PASSWORD = ".tie5Roanl";
+    public final static int NUM_PASSWORD_CODE = 0x0000;
+    public final static int ALNUM_PASSWORD_CODE = 0x0001;
 }

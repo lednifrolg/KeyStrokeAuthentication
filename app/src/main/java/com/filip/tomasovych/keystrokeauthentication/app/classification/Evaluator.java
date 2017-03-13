@@ -45,6 +45,9 @@ public final class Evaluator {
             labelValues.add("1.0");
             labelValues.add("2.0");
             labelValues.add("3.0");
+            labelValues.add("5.0");
+            labelValues.add("6.0");
+            labelValues.add("7.0");
 
 
             for (String label : labels) {
@@ -68,13 +71,56 @@ public final class Evaluator {
             double pred = SVM.classifyInstance(dataset.instance(0));
 //            System.out.println(dataset.classAttribute().value((int) pred));
 
-            Log.d("ASDDDDDDD", "PRED : " + dataset.classAttribute().value((int) pred));
+            Log.d(TAG, "PRED : " + dataset.classAttribute().value((int) pred));
+            style = Double.valueOf(dataset.classAttribute().value((int) pred)).intValue();
         } catch (Exception e) {
             e.printStackTrace();
             return -1;
         }
 
         return style;
+    }
+
+    public static String predictUser(KeyBuffer keyBuffer, FileInputStream modelInputStream, FileInputStream valuesInputStream, List<String> labelValues) {
+        String user;
+
+        ArrayList<Double> entry = new ArrayList<>();
+        List<String> labels = preprocessEntry(keyBuffer, valuesInputStream, entry);
+
+        try {
+            SMO SVM = (SMO) SerializationHelper.read(modelInputStream);
+
+            ArrayList<Attribute> atts = new ArrayList<>();
+            double[] vals;
+
+
+            for (String label : labels) {
+                atts.add(new Attribute(label, false));
+            }
+
+            atts.add(new Attribute("state", labelValues));
+            Instances dataset = new Instances("whatever", atts, 0);
+
+            vals = new double[dataset.numAttributes()];
+
+            for (int i = 0; i < entry.size(); i++) {
+                vals[i] = entry.get(i);
+            }
+
+            dataset.add(new DenseInstance(1.0, vals));
+            dataset.setClassIndex(dataset.numAttributes() - 1);
+
+            double pred = SVM.classifyInstance(dataset.instance(0));
+//            System.out.println(dataset.classAttribute().value((int) pred));
+
+            Log.d(TAG, "PRED : " + dataset.classAttribute().value((int) pred));
+            user = dataset.classAttribute().value((int) pred);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return user;
     }
 
     public static List<String> preprocessEntry(KeyBuffer keyBuffer, FileInputStream inputStream, ArrayList<Double> entry) {

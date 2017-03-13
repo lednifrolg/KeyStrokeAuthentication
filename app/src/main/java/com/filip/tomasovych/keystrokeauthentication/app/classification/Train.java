@@ -6,6 +6,7 @@ import android.util.Log;
 import com.filip.tomasovych.keystrokeauthentication.app.database.DbHelper;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
 import com.filip.tomasovych.keystrokeauthentication.app.util.CSVWriter;
+import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
 import com.opencsv.CSVReader;
 
 import java.io.FileInputStream;
@@ -38,25 +39,116 @@ public class Train {
         mDbHelper = DbHelper.getInstance(context);
         mContext = context;
         mUser = user;
+//        mDbHelper.deleteUser(user);
     }
 
 
-    public boolean trainUser() {
-        ArrayList<Integer> states = checkStates();
+    public boolean trainUser(int passwordCode) {
+        ArrayList<Integer> states = checkStates(mUser.getName(), passwordCode);
+        FileInputStream userValuesInputStream;
+        String typingFileName = mUser.getName() + "TYPING.csv";
+        String userValuesFileName = null;
 
-        for (int state : states) {
-            createStateModel(state);
+        if (passwordCode == Helper.NUM_PASSWORD_CODE)
+            userValuesFileName = mUser.getName() + "NUM.csv";
+        else if (passwordCode == Helper.ALNUM_PASSWORD_CODE)
+            userValuesFileName = mUser.getName() + "ALNUM.csv";
+
+
+        try {
+            userValuesInputStream = mContext.openFileInput(userValuesFileName);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
         }
 
-        createUserTypingModel();
+        for (int state : states) {
+            createStateModel(state, mUser.getName());
+        }
+
+        createTypingModel(userValuesInputStream, typingFileName, mUser.getName(), passwordCode);
 
         return true;
     }
 
-    private boolean createStateModel(int state) {
+    public boolean trainIdentification(int passwordCode) {
+        ArrayList<Integer> states = checkStates("Classification", passwordCode);
+        FileInputStream usersTypingStyleInputStream;
+        String typingFileName = "ClassificationTYPING.csv";
+        String usersTypingStyleFileName = "Classification.csv";
+
+
+        if (passwordCode == Helper.NUM_PASSWORD_CODE)
+            usersTypingStyleFileName = "ClassificationNUM.csv";
+        else if (passwordCode == Helper.ALNUM_PASSWORD_CODE)
+            usersTypingStyleFileName = "ClassificationALNUM.csv";
+
+
+        try {
+            usersTypingStyleInputStream = mContext.openFileInput(usersTypingStyleFileName);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        for (int state : states) {
+            createIdentificationStateModel(state, "Classification");
+        }
+
+        createTypingModel(usersTypingStyleInputStream, typingFileName, "Classification", passwordCode);
+
+        return true;
+    }
+
+    private boolean createIdentificationStateModel(int state, String name) {
         CSVReader csvReader;
         try {
-            FileInputStream inputStream = mContext.openFileInput(state + mUser.getName() + ".csv");
+            FileInputStream inputStream = mContext.openFileInput(state + name + ".csv");
+            InputStreamReader reader = new InputStreamReader(inputStream);
+            csvReader = new CSVReader(reader);
+
+            ArrayList<ArrayList<Double>> columns = new ArrayList<>();
+            ArrayList<String> labels = new ArrayList<>();
+            ArrayList<String> users = new ArrayList<>();
+
+            String[] line;
+            while ((line = csvReader.readNext()) != null) {
+
+                if (line[0].equals("xCoordPress0")) {
+                    for (int i = 0; i < line.length - 1; i++) {
+                        columns.add(new ArrayList<Double>());
+                        labels.add(line[i]);
+                    }
+                    continue;
+                }
+
+                for (int i = 0; i < line.length - 1; i++) {
+                    columns.get(i).add(Double.valueOf(line[i]));
+                }
+
+                users.add(line[line.length - 1]);
+            }
+
+            csvReader.close();
+            standardize(columns, state, name);
+
+            createIdentificationModel(columns, state, "Classification", labels, users);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean createStateModel(int state, String name) {
+        CSVReader csvReader;
+        try {
+            FileInputStream inputStream = mContext.openFileInput(state + name + ".csv");
             InputStreamReader reader = new InputStreamReader(inputStream);
             csvReader = new CSVReader(reader);
 
@@ -64,6 +156,7 @@ public class Train {
 
             String[] line;
             while ((line = csvReader.readNext()) != null) {
+
                 if (line[0].equals("xCoordPress0")) {
                     for (int i = 0; i < line.length; i++) {
                         columns.add(new ArrayList<Double>());
@@ -77,7 +170,7 @@ public class Train {
             }
 
             csvReader.close();
-            standardize(columns, state);
+            standardize(columns, state, name);
 
             createManhattanModel(columns, state);
 
@@ -93,17 +186,22 @@ public class Train {
     }
 
 
-    private ArrayList<Integer> checkStates() {
+    private ArrayList<Integer> checkStates(String fileName, int passwordCode) {
         ArrayList<Integer> states = new ArrayList<>();
-        for (int i = 1; i < 4; i++) {
-            if (mContext.getFileStreamPath(i + mUser.getName() + ".csv").exists()) {
-                states.add(i);
+
+        if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+            for (int i = 1; i < 4; i++) {
+                if (mContext.getFileStreamPath(i + fileName + ".csv").exists()) {
+                    states.add(i);
+                }
             }
         }
 
-        for (int i = 5; i < 8; i++) {
-            if (mContext.getFileStreamPath(i + mUser.getName() + ".csv").exists()) {
-                states.add(i);
+        if (passwordCode == Helper.NUM_PASSWORD_CODE) {
+            for (int i = 5; i < 8; i++) {
+                if (mContext.getFileStreamPath(i + fileName + ".csv").exists()) {
+                    states.add(i);
+                }
             }
         }
 
@@ -119,9 +217,9 @@ public class Train {
             model.add(mean(col));
         }
 
-        write(model, fileName);
+        write(model, fileName, Context.MODE_PRIVATE);
 
-//        createDistanceThreshold(columns, state, model);
+        createDistanceThreshold(columns, state, model);
 
         return true;
     }
@@ -130,7 +228,7 @@ public class Train {
         int r = columns.get(0).size();
         ArrayList<ArrayList<Double>> rows = new ArrayList<>(r);
         ArrayList<Double> distances = new ArrayList<>();
-        double threshold = 0;
+        double threshold;
 
         for (int i = 0; i < r; i++) {
             rows.add(new ArrayList<Double>());
@@ -155,8 +253,6 @@ public class Train {
         threshold = min - Math.abs(mean / 2) + std;
 
         mDbHelper.setThresholdValue(state, mUser, threshold);
-
-        return;
     }
 
 
@@ -189,10 +285,10 @@ public class Train {
     }
 
 
-    private void standardize(ArrayList<ArrayList<Double>> columns, int state) {
+    private void standardize(ArrayList<ArrayList<Double>> columns, int state, String name) {
         ArrayList<Double> stDevs = new ArrayList<>();
         ArrayList<Double> means = new ArrayList<>();
-        String fileName = state + mUser.getName() + "VALUES.csv";
+        String fileName = state + name + "VALUES.csv";
 
         for (ArrayList<Double> col : columns) {
             double mean = mean(col);
@@ -207,14 +303,21 @@ public class Train {
             }
         }
 
-        write(means, fileName);
-        write(stDevs, fileName);
+        write(means, fileName, Context.MODE_PRIVATE);
+        write(stDevs, fileName, Context.MODE_APPEND);
     }
 
-    private void standardize(ArrayList<ArrayList<Double>> columns, ArrayList<String> labels) {
+    private void standardize(ArrayList<ArrayList<Double>> columns, String name, int passwordCode) {
         ArrayList<Double> stDevs = new ArrayList<>();
         ArrayList<Double> means = new ArrayList<>();
-        String fileName = mUser.getName() + "VALUES.csv";
+        String fileName = null;
+
+        if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+            fileName = name + "VALUESALNUM.csv";
+        } else if (passwordCode == Helper.NUM_PASSWORD_CODE) {
+            fileName = name + "VALUESNUM.csv";
+        }
+
         int colNum = columns.size() - 1;
         int count = 0;
 
@@ -236,13 +339,13 @@ public class Train {
             count++;
         }
 
-        write(means, fileName);
-        write(stDevs, fileName);
+        write(means, fileName, Context.MODE_PRIVATE);
+        write(stDevs, fileName, Context.MODE_APPEND);
     }
 
-    private <T> boolean write(ArrayList<T> row, String fileName) {
+    private <T> boolean write(ArrayList<T> row, String fileName, int mode) {
         try {
-            FileOutputStream outputStream = mContext.openFileOutput(fileName, Context.MODE_PRIVATE | Context.MODE_APPEND);
+            FileOutputStream outputStream = mContext.openFileOutput(fileName, mode);
 
             List<String> list = new ArrayList<>();
 
@@ -262,10 +365,9 @@ public class Train {
     }
 
 
-    private void createUserTypingModel() {
+    private void createTypingModel(FileInputStream inputStream, String typingFileName, String name, int passwordCode) {
         CSVReader csvReader;
         try {
-            FileInputStream inputStream = mContext.openFileInput(mUser.getName() + ".csv");
             InputStreamReader reader = new InputStreamReader(inputStream);
             csvReader = new CSVReader(reader);
 
@@ -288,27 +390,24 @@ public class Train {
                 }
             }
 
-            standardize(columns, labels);
-            ArrayList<ArrayList<Double>> rows = createTypingModel(columns, labels);
-            trainTypingModel(labels, rows);
+            standardize(columns, name, passwordCode);
+            ArrayList<ArrayList<Double>> rows = saveTypingModel(columns, labels, typingFileName);
+            trainTypingModel(labels, rows, name, passwordCode);
 
             csvReader.close();
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-
     }
 
-    private ArrayList<ArrayList<Double>> createTypingModel(ArrayList<ArrayList<Double>> columns, ArrayList<String> labels) {
+
+    private ArrayList<ArrayList<Double>> saveTypingModel(ArrayList<ArrayList<Double>> columns, ArrayList<String> labels, String fileName) {
         ArrayList<ArrayList<Double>> rowsList = new ArrayList<>();
-        String fileName = mUser.getName() + "TYPING.csv";
         int rows = columns.get(0).size();
 
-        write(labels, fileName);
+        write(labels, fileName, Context.MODE_PRIVATE);
 
         for (int i = 0; i < rows; i++) {
             ArrayList<Double> row = new ArrayList<>();
@@ -316,21 +415,34 @@ public class Train {
                 row.add(col.get(i));
             }
 
-            write(row, fileName);
+            write(row, fileName, Context.MODE_APPEND);
             rowsList.add(row);
         }
 
         return rowsList;
     }
 
-    private void trainTypingModel(ArrayList<String> labels, ArrayList<ArrayList<Double>> rows) {
+
+    private void trainTypingModel(ArrayList<String> labels, ArrayList<ArrayList<Double>> rows, String name, int passwordCode) {
         ArrayList<Attribute> atts = new ArrayList<>();
         double[] vals;
+        String modelName = null;
 
         List<String> labelValues = new ArrayList<>();
-        labelValues.add("1.0");
-        labelValues.add("2.0");
-        labelValues.add("3.0");
+
+        if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+            labelValues.add("1.0");
+            labelValues.add("2.0");
+            labelValues.add("3.0");
+
+            modelName = name + "SVMALNUM";
+        } else if (passwordCode == Helper.NUM_PASSWORD_CODE) {
+            labelValues.add("5.0");
+            labelValues.add("6.0");
+            labelValues.add("7.0");
+
+            modelName = name + "SVMNUM";
+        }
 
 
         for (String label : labels) {
@@ -362,7 +474,7 @@ public class Train {
             //svm.setOptions(weka.core.Utils.splitOptions("-S 0 -K 0 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 40.0 -C 1.0 -E 0.001 -P 0.1"));
             svm.buildClassifier(data);
 
-            FileOutputStream outputStream = mContext.openFileOutput(mUser.getName() + "SVM", Context.MODE_APPEND);
+            FileOutputStream outputStream = mContext.openFileOutput(modelName, Context.MODE_APPEND);
             SerializationHelper.write(outputStream, svm);
         } catch (Exception e) {
             e.printStackTrace();
@@ -370,5 +482,69 @@ public class Train {
 
 
         Log.d(TAG, "trainTypingModel");
+    }
+
+    private void createIdentificationModel(ArrayList<ArrayList<Double>> columns, int state, String name, ArrayList<String> labels, ArrayList<String> users) {
+        ArrayList<ArrayList<Double>> rows = transformColumnsToRows(columns);
+
+        ArrayList<Attribute> atts = new ArrayList<>();
+        double[] vals;
+
+        List<String> labelValues = mDbHelper.getUsersForIdentifiaction();
+
+
+        for (String label : labels) {
+            atts.add(new Attribute(label, false));
+        }
+
+        atts.add(new Attribute("name", labelValues));
+
+        Instances data = new Instances("MyRelation", atts, 0);
+
+        int iter = 0;
+        for (ArrayList<Double> row : rows) {
+            vals = new double[data.numAttributes()];
+
+            for (int i = 0; i < row.size(); i++) {
+                vals[i] = row.get(i);
+            }
+
+            vals[row.size()] = labelValues.indexOf(users.get(iter));
+
+            data.add(new DenseInstance(1.0, vals));
+
+            iter++;
+        }
+
+        data.setClassIndex(data.numAttributes() - 1);
+        SMO svm = new SMO();
+
+        try {
+            //svm.setOptions(weka.core.Utils.splitOptions("-S 0 -K 0 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 40.0 -C 1.0 -E 0.001 -P 0.1"));
+            svm.buildClassifier(data);
+
+            String modelName = null;
+            FileOutputStream outputStream = mContext.openFileOutput(state + name + "SVM", Context.MODE_APPEND);
+            SerializationHelper.write(outputStream, svm);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private ArrayList<ArrayList<Double>> transformColumnsToRows(ArrayList<ArrayList<Double>> columns) {
+        ArrayList<ArrayList<Double>> rowsList = new ArrayList<>();
+        int rows = columns.get(0).size();
+
+        for (int i = 0; i < rows; i++) {
+            ArrayList<Double> row = new ArrayList<>();
+            for (ArrayList<Double> col : columns) {
+                row.add(col.get(i));
+            }
+
+            rowsList.add(row);
+        }
+
+        return rowsList;
     }
 }

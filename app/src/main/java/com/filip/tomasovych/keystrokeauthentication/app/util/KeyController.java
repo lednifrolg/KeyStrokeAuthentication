@@ -48,8 +48,8 @@ public class KeyController {
             }
         }
 
-        if (errors == 0)
-            saveCSV(keyBuffer, state);
+//        if (errors == 0)
+//            saveCSV(keyBuffer, state);
 
         keyBuffer.clear();
 
@@ -59,23 +59,42 @@ public class KeyController {
 
     private boolean saveCSV(KeyBuffer keyBuffer, int state) {
         String csvFile = state + mUser.getName() + ".csv";
-        String typingFile = mUser.getName() + ".csv";
+        String classificationFile = state + "Classification.csv";
+        String classificationTypingFile;
+        String typingFile;
+
+        boolean isNumeric = (state > 4) ? true : false;
+
+        if (isNumeric) {
+            typingFile = mUser.getName() + "NUM.csv";
+            classificationTypingFile = "ClassificationNUM.csv";
+        } else {
+            typingFile = mUser.getName() + "ALNUM.csv";
+            classificationTypingFile = "ClassificationALNUM.csv";
+        }
 
         int bufferSize = keyBuffer.getSize();
 
         List<String> columns = new ArrayList<>();
+        List<String> columns2;
 
         for (int i = 0; i < bufferSize; i++) {
             columns.add("xCoordPress" + i);
             columns.add("yCoordPress" + i);
-            columns.add("xCoordRelease" + i);
-            columns.add("yCoordRelease" + i);
+
+            if (!isNumeric) {
+                columns.add("xCoordRelease" + i);
+                columns.add("yCoordRelease" + i);
+            }
+
             columns.add("pressPressure" + i);
             columns.add("releasePressure" + i);
             columns.add("holdTime" + i);
             columns.add("HPP" + i);
-            columns.add("offSet" + i);
 
+            if (!isNumeric) {
+                columns.add("offSet" + i);
+            }
         }
 
         for (int i = 0; i < bufferSize - 1; i++) {
@@ -83,10 +102,19 @@ public class KeyController {
             columns.add("UDTime" + i);
         }
 
-        write(columns, csvFile, keyBuffer, -1);
 
-        columns.add("state");
-        write(columns, typingFile, keyBuffer, state);
+        if (mUser.getPassword().equals(Helper.STATIC_PASSWORD)) {
+            columns2 = new ArrayList<>(columns);
+            columns2.add("name");
+            write(columns2, classificationFile, keyBuffer, 0);
+
+            columns.add("state");
+            write(columns, classificationTypingFile, keyBuffer, state);
+        } else {
+            write(columns, csvFile, keyBuffer, -1);
+            columns.add("state");
+            write(columns, typingFile, keyBuffer, state);
+        }
 
         return true;
     }
@@ -101,11 +129,13 @@ public class KeyController {
             if (!exists)
                 CSVWriter.writeLine(outputStream, columns);
 
-
             List<String> list = transformKeyBuffer(keyBuffer);
 
-            if (state != -1)
+            if (state > 0)
                 list.add(String.valueOf(state));
+
+            if (state == 0)
+                list.add(mUser.getName());
 
             CSVWriter.writeLine(outputStream, list);
 

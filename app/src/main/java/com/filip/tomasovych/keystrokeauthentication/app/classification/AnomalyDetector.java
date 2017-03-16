@@ -39,12 +39,15 @@ public class AnomalyDetector {
     public boolean evaluateEntry(KeyBuffer keyBuffer, int passwordCode) {
         int style = getStyle(keyBuffer, passwordCode);
 
+        if (style == -1)
+            return false;
+
         ArrayList<Double> entry = new ArrayList<>();
         ArrayList<Double> model = getManhattanModel(style);
         String fileName = style + mUser.getName() + "VALUES.csv";
         try {
             FileInputStream inputStream = mContext.openFileInput(fileName);
-            List<String> labels = Evaluator.preprocessEntry(keyBuffer, inputStream, entry);
+            List<String> labels = Evaluator.preprocessEntry(keyBuffer, inputStream, entry, passwordCode);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -77,7 +80,7 @@ public class AnomalyDetector {
                 vals = mContext.openFileInput(mUser.getName() + "VALUESNUM.csv");
             }
 
-            return Evaluator.predictTypingStyle(model, vals, keyBuffer);
+            return Evaluator.predictTypingStyle(model, vals, keyBuffer, passwordCode);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

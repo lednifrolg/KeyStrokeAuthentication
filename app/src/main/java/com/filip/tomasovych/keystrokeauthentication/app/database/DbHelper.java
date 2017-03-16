@@ -27,7 +27,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     // Database info
     private static final String DATABASE_NAME = "KeystrokeDynamics.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 7;
 
     // Table names
     private static final String TABLE_USER = "User";
@@ -160,11 +160,11 @@ public class DbHelper extends SQLiteOpenHelper {
 
         String CREATE_OUTLIER_THRESHOLD_TABLE = "CREATE TABLE " + TABLE_OUTLIER_THRESHOLD +
                 "(" +
-                OUTLIER_THRESHOLD_ID + " INTEGER PRIMARY KEY," +
                 OUTLIER_THRESHOLD_ID_USER + " INTEGER," +
                 OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + " INTEGER," +
                 OUTLIER_THRESHOLD_VALUE + " REAL," +
-                "FOREIGN KEY (" + OUTLIER_THRESHOLD_ID_USER + ") REFERENCES " + TABLE_USER + "(" + USER_ID + ")" +
+                "PRIMARY KEY (" + OUTLIER_THRESHOLD_ID_USER + ", " + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + ")" +
+                "FOREIGN KEY (" + OUTLIER_THRESHOLD_ID_USER + ") REFERENCES " + TABLE_USER + "(" + USER_ID + ") " +
                 "FOREIGN KEY (" + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + ") REFERENCES " + TABLE_EXPERIMENT_TYPE + "(" + EXPERIMENT_TYPE_ID + ")" +
                 ")";
 
@@ -197,11 +197,13 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
         if (oldVersion != newVersion) {
             // Simplest implementation is to drop all old tables and recreate them
             Log.d(TAG, "OLDVERSION DB != NEWVERSION");
 //            db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERdETAIL);
-
+//            db.execSQL("CREATE UNIQUE INDEX idx_twocols ON " + TABLE_OUTLIER_THRESHOLD + "(" + OUTLIER_THRESHOLD_ID_USER + ", " + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + ")");
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_OUTLIER_THRESHOLD);
             onCreate(db);
         }
     }
@@ -404,7 +406,10 @@ public class DbHelper extends SQLiteOpenHelper {
             values.put(OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID, type);
             values.put(OUTLIER_THRESHOLD_VALUE, thresholdValue);
 
-            result = db.insertOrThrow(TABLE_OUTLIER_THRESHOLD, null, values);
+            result = db.insertWithOnConflict(TABLE_OUTLIER_THRESHOLD, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+            if (result == -1) {
+               result = db.update(TABLE_OUTLIER_THRESHOLD, values, (OUTLIER_THRESHOLD_ID_USER + " = " + user.getId() + " AND " + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + " = " + type), new String[]{});
+            }
             db.setTransactionSuccessful();
 
             Log.d(TAG, "setThresholdValue value : " + thresholdValue);

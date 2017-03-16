@@ -299,6 +299,10 @@ public class Train {
             for (int i = 0; i < col.size(); i++) {
                 Double val = col.get(i);
                 val = (val - mean) / stDev;
+
+                if (stDev == 0)
+                    val = 0.0;
+
                 col.set(i, val);
             }
         }

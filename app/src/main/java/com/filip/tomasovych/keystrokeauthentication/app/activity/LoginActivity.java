@@ -311,11 +311,15 @@ public class LoginActivity extends AppCompatActivity {
                 mUser = null;
                 mEmailView.setText("");
                 mPasswordView.setText("");
+
+                finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
             }
         }
+
+
 
         @Override
         protected void onCancelled() {

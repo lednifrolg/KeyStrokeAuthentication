@@ -31,11 +31,11 @@
         app:layout_constraintTop_toBottomOf="@+id/buttonRegister" />
 
     <Button
-        android:id="@+id/buttonIdentification"
+        android:id="@+id/buttonExperiment"
         android:layout_width="192dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/identification"
+        android:text="@string/experiment"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

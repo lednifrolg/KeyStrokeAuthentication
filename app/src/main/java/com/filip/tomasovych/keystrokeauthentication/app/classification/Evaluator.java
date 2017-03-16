@@ -3,6 +3,7 @@ package com.filip.tomasovych.keystrokeauthentication.app.classification;
 import android.util.Log;
 
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
+import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
 import com.filip.tomasovych.keystrokeauthentication.app.util.KeyController;
 import com.opencsv.CSVReader;
 
@@ -30,10 +31,10 @@ public final class Evaluator {
 
     private final static String TAG = Evaluator.class.getSimpleName();
 
-    public static int predictTypingStyle(FileInputStream modelInputStream, FileInputStream valuesInputStream, KeyBuffer keyBuffer) {
+    public static int predictTypingStyle(FileInputStream modelInputStream, FileInputStream valuesInputStream, KeyBuffer keyBuffer, int passwordCode) {
         int style = -1;
         ArrayList<Double> entry = new ArrayList<>();
-        List<String> labels = preprocessEntry(keyBuffer, valuesInputStream, entry);
+        List<String> labels = preprocessEntry(keyBuffer, valuesInputStream, entry, passwordCode);
 
         try {
             SMO SVM = (SMO) SerializationHelper.read(modelInputStream);
@@ -42,13 +43,15 @@ public final class Evaluator {
             double[] vals;
 
             List<String> labelValues = new ArrayList<>();
-            labelValues.add("1.0");
-            labelValues.add("2.0");
-            labelValues.add("3.0");
-            labelValues.add("5.0");
-            labelValues.add("6.0");
-            labelValues.add("7.0");
-
+            if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+                labelValues.add("1.0");
+                labelValues.add("2.0");
+                labelValues.add("3.0");
+            } else if (passwordCode == Helper.NUM_PASSWORD_CODE) {
+                labelValues.add("5.0");
+                labelValues.add("6.0");
+                labelValues.add("7.0");
+            }
 
             for (String label : labels) {
                 atts.add(new Attribute(label, false));
@@ -81,11 +84,11 @@ public final class Evaluator {
         return style;
     }
 
-    public static String predictUser(KeyBuffer keyBuffer, FileInputStream modelInputStream, FileInputStream valuesInputStream, List<String> labelValues) {
+    public static String predictUser(KeyBuffer keyBuffer, FileInputStream modelInputStream, FileInputStream valuesInputStream, List<String> labelValues, int passwordCode) {
         String user;
 
         ArrayList<Double> entry = new ArrayList<>();
-        List<String> labels = preprocessEntry(keyBuffer, valuesInputStream, entry);
+        List<String> labels = preprocessEntry(keyBuffer, valuesInputStream, entry, passwordCode);
 
         try {
             SMO SVM = (SMO) SerializationHelper.read(modelInputStream);
@@ -123,8 +126,8 @@ public final class Evaluator {
         return user;
     }
 
-    public static List<String> preprocessEntry(KeyBuffer keyBuffer, FileInputStream inputStream, ArrayList<Double> entry) {
-        List<String> list = KeyController.transformKeyBuffer(keyBuffer);
+    public static List<String> preprocessEntry(KeyBuffer keyBuffer, FileInputStream inputStream, ArrayList<Double> entry, int passwordCode) {
+        List<String> list = KeyController.transformKeyBuffer(keyBuffer, passwordCode);
         ArrayList<Double> means = new ArrayList<>();
         ArrayList<Double> stDevs = new ArrayList<>();
 
@@ -137,7 +140,7 @@ public final class Evaluator {
 
         Evaluator.standardize(entry, means, stDevs);
 
-        return KeyController.getLabels(keyBuffer);
+        return KeyController.getLabels(keyBuffer, passwordCode);
     }
 
 
@@ -171,7 +174,12 @@ public final class Evaluator {
     public static void standardize(ArrayList<Double> entry, ArrayList<Double> means, ArrayList<Double> stDevs) {
         for (int i = 0; i < entry.size(); i++) {
             Double val = entry.get(i);
-            val = (val - means.get(i)) / stDevs.get(i);
+
+            if (stDevs.get(i) == 0)
+                val = val - means.get(i);
+            else
+                val = (val - means.get(i)) / stDevs.get(i);
+            
             entry.set(i, val);
         }
     }

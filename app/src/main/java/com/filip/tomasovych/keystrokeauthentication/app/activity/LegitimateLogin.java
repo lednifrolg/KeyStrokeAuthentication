@@ -1,13 +1,12 @@
 package com.filip.tomasovych.keystrokeauthentication.app.activity;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -17,18 +16,25 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.filip.tomasovych.keystrokeauthentication.R;
-import com.filip.tomasovych.keystrokeauthentication.app.classification.Train;
+import com.filip.tomasovych.keystrokeauthentication.app.classification.AnomalyDetector;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
 import com.filip.tomasovych.keystrokeauthentication.app.model.KeyObject;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
+import com.filip.tomasovych.keystrokeauthentication.app.util.CSVWriter;
 import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
 import com.filip.tomasovych.keystrokeauthentication.app.util.KeyController;
 
-public class TrainActivity extends AppCompatActivity {
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-    private static final String TAG = TrainActivity.class.getSimpleName();
+public class LegitimateLogin extends AppCompatActivity {
+
+    private static final String TAG = LegitimateLogin.class.getSimpleName();
 
     private String mQWERTY;
     private String mQWERTYWithDot;
@@ -51,23 +57,23 @@ public class TrainActivity extends AppCompatActivity {
     private KeyBuffer mKeyBuffer;
     private KeyController mKeyController;
     private int mErrorsNum;
+    private String mActiveUser;
 
     private int mState;
     private int mCounter;
     private boolean mIsShiftPressed;
 
     private boolean mIsNumPassword;
-    private boolean mIsIdentify;
 
     private Handler mHandler = new Handler();
 
+    private static final int NUMBER_OF_REPS = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_train);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_legitimate_login);
+
 
         mState = 0;
         mCounter = 0;
@@ -76,7 +82,7 @@ public class TrainActivity extends AppCompatActivity {
         mKeyBuffer = new KeyBuffer();
 
         mTrainHintTextView = (TextView) findViewById(R.id.trainHintTextView);
-        mTrainHintTextView.setText(R.string.training_hint_practice);
+//        mTrainHintTextView.setText(R.string.training_hint_practice);
 
         mPasswordEditText = (EditText) findViewById(R.id.trainPassword);
         mPasswordEditText.requestFocus();
@@ -84,6 +90,7 @@ public class TrainActivity extends AppCompatActivity {
 
         mCounterTextView = (TextView) findViewById(R.id.counterTextView);
         mCounterProgressBar = (ProgressBar) findViewById(R.id.countProgressBar);
+        mCounterProgressBar.setMax(NUMBER_OF_REPS);
 
         mPasswordHintTextView = (TextView) findViewById(R.id.passwordHintTextView);
 
@@ -116,40 +123,49 @@ public class TrainActivity extends AppCompatActivity {
 
                     if (mUser.getPassword().equals(pw)) {
 
-                        if (mCounter < 10) {
+                        if (mCounter < NUMBER_OF_REPS) {
 
                             if (mState != 0 && mState != 4) {
-//                                new Identificator(mUser, getApplicationContext()).predict(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
-//                                AnomalyDetector ad = new AnomalyDetector(mUser, getApplicationContext());
-//
-//                                boolean isUser;
-//                                if (mIsNumPassword)
-//                                    isUser = ad.evaluateEntry(mKeyBuffer, Helper.NUM_PASSWORD_CODE);
-//                                else
-//                                    isUser = ad.evaluateEntry(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
-//
-//                                Toast.makeText(getApplicationContext(), "Is user : " + isUser, Toast.LENGTH_SHORT).show();
+                                AnomalyDetector ad = new AnomalyDetector(mUser, getApplicationContext());
 
-                                mKeyController.save(mKeyBuffer, mState, 0);
+                                boolean isUser;
+                                if (mIsNumPassword)
+                                    isUser = ad.evaluateEntry(mKeyBuffer, Helper.NUM_PASSWORD_CODE);
+                                else
+                                    isUser = ad.evaluateEntry(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
+
+                                Toast.makeText(getApplicationContext(), "Successful login : " + isUser, Toast.LENGTH_SHORT).show();
+
+                                List<String> output = new ArrayList<>();
+                                output.add(String.valueOf(mUser.getId()));
+                                output.add(mUser.getName());
+                                output.add(mUser.getPassword());
+                                output.add(String.valueOf(mIsNumPassword));
+                                output.add(String.valueOf(isUser));
+
+                                try {
+                                    FileOutputStream outputStream = getApplicationContext().openFileOutput("LegitimateExperiment.csv", Context.MODE_APPEND);
+                                    CSVWriter.writeLine(outputStream, output);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
+                                mKeyController.save(mKeyBuffer, mState, 3);
 
                                 mCounter++;
                                 Log.d(TAG, "Done: Counter: " + mCounter);
 
-                                mCounterTextView.setText(Integer.toString(mCounter) + "/10");
+                                mCounterTextView.setText(Integer.toString(mCounter) + "/" + NUMBER_OF_REPS);
                             }
 
                             mErrorsNum = 0;
 //                            mCounterTextView.setText(Integer.toString(mCounter));
                         }
 
-                        if (mCounter == 10) {
+                        if (mCounter == NUMBER_OF_REPS) {
                             changeState();
                         }
                         updateProgressBar();
-                    }
-
-                    if (mState != 0 && mState != 4 && mKeyBuffer.getSize() > 4) {
-                        mKeyController.save(mKeyBuffer, mState, 1);
                     }
 
                     mKeyBuffer.clear();
@@ -173,7 +189,7 @@ public class TrainActivity extends AppCompatActivity {
 
         mKeyController = new KeyController(getApplicationContext(), mUser);
 
-        showAlertDialog("Vyskusaj si klavesnicu (par krat si napis heslo). Pre potvrdenie hesla stlac DONE vpravo dole, " +
+        showAlertDialog("Tvojou ulohou je prepisat zadane heslo, heslo opis 5-krat pre kazdy sposob pisania. Pre potvrdenie hesla stlac DONE vpravo dole, " +
                 "v pripade ze sa pomylis takisto stlac DONE a zacni znovu. V pripade ze si pripraveny zacat experiment stlac START");
 
         startButtonDelay();
@@ -188,14 +204,14 @@ public class TrainActivity extends AppCompatActivity {
                 public void run() {
                     mStartButton.setVisibility(View.VISIBLE);
                 }
-            }, 10000);
+            }, 2000);
         } else {
             ret = mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mStartButton.setVisibility(View.VISIBLE);
                 }
-            }, 10000);
+            }, 3000);
         }
     }
 
@@ -210,19 +226,15 @@ public class TrainActivity extends AppCompatActivity {
         mUser.setId(extras.getLong(Helper.USER_ID));
         mUser.setPassword(extras.getString(Helper.USER_PASSWORD));
         mIsNumPassword = extras.getBoolean(Helper.NUM_PASSWORD);
-        mIsIdentify = extras.getBoolean(Helper.IS_IDENTIFY);
 
-        if (mIsIdentify) {
-            //mPasswordEditText.setHint(mUser.getPassword());
-
-            mPasswordHintTextView.setVisibility(View.VISIBLE);
-            mPasswordHintTextView.setText(mUser.getPassword());
-        }
+        mPasswordHintTextView.setVisibility(View.VISIBLE);
+        mPasswordHintTextView.setText(mUser.getPassword());
 
         Log.d(TAG, mUser.toString());
         Log.d(TAG, "IsNumPassword " + mIsNumPassword);
-        Log.d(TAG, "IsIdentify" + mIsIdentify);
+//        Log.d(TAG, "IsIdentify" + mIsIdentify);
     }
+
 
     /**
      * Find keyboard buttons and set up their onTouchListeners
@@ -314,7 +326,7 @@ public class TrainActivity extends AppCompatActivity {
      * @param message message to be shown in dialog
      */
     private void showAlertDialog(String message) {
-        AlertDialog alertDialog = new AlertDialog.Builder(TrainActivity.this).create();
+        AlertDialog alertDialog = new AlertDialog.Builder(LegitimateLogin.this).create();
         alertDialog.setTitle("Password");
         alertDialog.setMessage(message);
         alertDialog.setCancelable(false);
@@ -423,65 +435,26 @@ public class TrainActivity extends AppCompatActivity {
     public void changeState() {
         mState++;
 
-
         switch (mState) {
             case 1:
             case 5:
-                mTrainHintTextView.setText(R.string.training_hint_thumb);
-                showAlertDialog("Pis heslo iba s palcom, opakuj 10 krat");
+                mTrainHintTextView.setText("Pis heslo iba s palcom, opakuj " + NUMBER_OF_REPS + " krat");
+                showAlertDialog("Pis heslo iba s palcom, opakuj " + NUMBER_OF_REPS + " krat");
                 break;
             case 2:
             case 6:
-                mTrainHintTextView.setText(R.string.training_hint_two_thumbs);
-                showAlertDialog("Pis heslo s dvoma palcami, opakuj 10 krat");
+                mTrainHintTextView.setText("Pis heslo s dvoma palcami, opakuj " + NUMBER_OF_REPS + " krat");
+                showAlertDialog("Pis heslo s dvoma palcami, opakuj " + NUMBER_OF_REPS + " krat");
                 break;
             case 3:
             case 7:
-                mTrainHintTextView.setText(R.string.training_hint_index);
-                showAlertDialog("Pis heslo iba s ukazovakom, opakuj 10 krat");
+                mTrainHintTextView.setText("Pis heslo iba s ukazovakom, opakuj " + NUMBER_OF_REPS + " krat");
+                showAlertDialog("Pis heslo iba s ukazovakom, opakuj " + NUMBER_OF_REPS + " krat");
                 break;
             case 4:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d(TAG, "START");
-//                        new Train(getApplicationContext(), mUser).trainIdentification(Helper.ALNUM_PASSWORD_CODE);
-                        new Train(getApplication(), mUser).trainUser(Helper.ALNUM_PASSWORD_CODE);
-                        Log.d(TAG, "STOP");
-                    }
-                });
-
-                Intent intent3 = new Intent(TrainActivity.this, SecondStageActivity.class);
-                intent3.putExtra(Helper.USER_NAME, mUser.getName());
-                intent3.putExtra(Helper.IS_IDENTIFY, mIsIdentify);
-                startActivity(intent3);
-
-                Intent intent = new Intent(TrainActivity.this, LegitimateLogin.class);
-                intent.putExtra(Helper.USER_NAME, mUser.getName());
-                intent.putExtra(Helper.USER_ID, mUser.getId());
-                intent.putExtra(Helper.USER_PASSWORD, mUser.getPassword());
-                intent.putExtra(Helper.NUM_PASSWORD, false);
-                startActivity(intent);
                 finish();
-                break;
+                return;
             case 8:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d(TAG, "START");
-//                        new Train(getApplicationContext(), mUser).trainIdentification(Helper.NUM_PASSWORD_CODE);
-                        new Train(getApplication(), mUser).trainUser(Helper.NUM_PASSWORD_CODE);
-                        Log.d(TAG, "STOP");
-                    }
-                }).start();
-
-                Intent intent2 = new Intent(TrainActivity.this, LegitimateLogin.class);
-                intent2.putExtra(Helper.USER_NAME, mUser.getName());
-                intent2.putExtra(Helper.USER_ID, mUser.getId());
-                intent2.putExtra(Helper.USER_PASSWORD, mUser.getPassword());
-                intent2.putExtra(Helper.NUM_PASSWORD, true);
-                startActivity(intent2);
-
                 finish();
         }
 
@@ -497,7 +470,7 @@ public class TrainActivity extends AppCompatActivity {
         mCounter = 0;
 
 
-        mCounterTextView.setText(Integer.toString(mCounter) + "/10");
+        mCounterTextView.setText(Integer.toString(mCounter) + "/" + NUMBER_OF_REPS);
         Log.d(TAG, "Counter " + mCounter);
     }
 

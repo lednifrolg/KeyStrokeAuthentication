@@ -43,7 +43,7 @@ public class Identificator {
 
             List<String> labelValues = mDbHelper.getUsersForIdentifiaction();
 
-            Evaluator.predictUser(keyBuffer, modelInputStream, valuesInputStream, labelValues);
+            Evaluator.predictUser(keyBuffer, modelInputStream, valuesInputStream, labelValues, passwordCode);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -65,7 +65,7 @@ public class Identificator {
                 vals = mContext.openFileInput("ClassificationVALUESNUM.csv");
             }
 
-            return Evaluator.predictTypingStyle(model, vals, keyBuffer);
+            return Evaluator.predictTypingStyle(model, vals, keyBuffer, passwordCode);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

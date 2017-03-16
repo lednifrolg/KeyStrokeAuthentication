@@ -48,8 +48,8 @@ public class KeyController {
             }
         }
 
-//        if (errors == 0)
-//            saveCSV(keyBuffer, state);
+        if (errors == 0)
+            saveCSV(keyBuffer, state);
 
         keyBuffer.clear();
 
@@ -106,22 +106,29 @@ public class KeyController {
         if (mUser.getPassword().equals(Helper.STATIC_PASSWORD)) {
             columns2 = new ArrayList<>(columns);
             columns2.add("name");
-            write(columns2, classificationFile, keyBuffer, 0);
+            write(columns2, classificationFile, keyBuffer, 0, isNumeric);
 
             columns.add("state");
-            write(columns, classificationTypingFile, keyBuffer, state);
+            write(columns, classificationTypingFile, keyBuffer, state, isNumeric);
         } else {
-            write(columns, csvFile, keyBuffer, -1);
+            write(columns, csvFile, keyBuffer, -1, isNumeric);
             columns.add("state");
-            write(columns, typingFile, keyBuffer, state);
+            write(columns, typingFile, keyBuffer, state, isNumeric);
         }
 
         return true;
     }
 
-    private boolean write(List<String> columns, String csvFile, KeyBuffer keyBuffer, int state) {
+    private boolean write(List<String> columns, String csvFile, KeyBuffer keyBuffer, int state, boolean isNumeric) {
         boolean exists = fileExists(csvFile);
         int bufferSize = keyBuffer.getSize();
+        int passwordCode;
+
+        if (isNumeric)
+            passwordCode = Helper.NUM_PASSWORD_CODE;
+        else
+            passwordCode = Helper.ALNUM_PASSWORD_CODE;
+
 
         try {
             FileOutputStream outputStream = mContext.openFileOutput(csvFile, Context.MODE_PRIVATE | Context.MODE_APPEND);
@@ -129,7 +136,7 @@ public class KeyController {
             if (!exists)
                 CSVWriter.writeLine(outputStream, columns);
 
-            List<String> list = transformKeyBuffer(keyBuffer);
+            List<String> list = transformKeyBuffer(keyBuffer, passwordCode);
 
             if (state > 0)
                 list.add(String.valueOf(state));
@@ -147,7 +154,7 @@ public class KeyController {
         return true;
     }
 
-    public static List<String> transformKeyBuffer(KeyBuffer keyBuffer) {
+    public static List<String> transformKeyBuffer(KeyBuffer keyBuffer, int passwordCode) {
         ArrayList<Long> pressed = new ArrayList<>();
         ArrayList<Long> released = new ArrayList<>();
         List<String> list = new ArrayList<>();
@@ -158,8 +165,12 @@ public class KeyController {
 
             list.add(String.valueOf(key.getCoordXPressed()));
             list.add(String.valueOf(key.getCoordYPressed()));
-            list.add(String.valueOf(key.getCoordXReleased()));
-            list.add(String.valueOf(key.getCoordYReleased()));
+
+            if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+                list.add(String.valueOf(key.getCoordXReleased()));
+                list.add(String.valueOf(key.getCoordYReleased()));
+            }
+
             list.add(String.valueOf(key.getPressedPressure()));
             list.add(String.valueOf(key.getReleasedPressure()));
             list.add(String.valueOf(transformTimeStamp(key.getPressedTime(), key.getReleasedTime())));
@@ -167,8 +178,10 @@ public class KeyController {
             double hpp = transformTimeStamp(key.getPressedTime(), key.getReleasedTime()) * key.getPressedPressure();
             list.add(String.valueOf(hpp));
 
-            double offset = Math.hypot(key.getCoordXReleased() - key.getCenterXCoord(), key.getCoordYReleased() - key.getCenterYCoord());
-            list.add(String.valueOf(offset));
+            if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+                double offset = Math.hypot(key.getCoordXReleased() - key.getCenterXCoord(), key.getCoordYReleased() - key.getCenterYCoord());
+                list.add(String.valueOf(offset));
+            }
         }
 
         for (int i = 0; i < keyBuffer.getSize() - 1; i++) {
@@ -191,7 +204,7 @@ public class KeyController {
         return file.exists();
     }
 
-    public static List<String> getLabels(KeyBuffer keyBuffer) {
+    public static List<String> getLabels(KeyBuffer keyBuffer, int passwordCode) {
         int bufferSize = keyBuffer.getSize();
 
         List<String> columns = new ArrayList<>();
@@ -199,13 +212,20 @@ public class KeyController {
         for (int i = 0; i < bufferSize; i++) {
             columns.add("xCoordPress" + i);
             columns.add("yCoordPress" + i);
-            columns.add("xCoordRelease" + i);
-            columns.add("yCoordRelease" + i);
+
+            if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+                columns.add("xCoordRelease" + i);
+                columns.add("yCoordRelease" + i);
+            }
+
             columns.add("pressPressure" + i);
             columns.add("releasePressure" + i);
             columns.add("holdTime" + i);
+
             columns.add("HPP" + i);
-            columns.add("offSet" + i);
+            if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+                columns.add("offSet" + i);
+            }
 
         }
 

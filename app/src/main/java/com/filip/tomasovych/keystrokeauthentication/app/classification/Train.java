@@ -250,7 +250,7 @@ public class Train {
         double mean = mean(distances);
         double std = stDev(distances, mean);
 
-        threshold = min - Math.abs(mean / 2) + std;
+        threshold = min - Math.abs(mean / 2) + std - 7;
 
         mDbHelper.setThresholdValue(state, mUser, threshold);
     }

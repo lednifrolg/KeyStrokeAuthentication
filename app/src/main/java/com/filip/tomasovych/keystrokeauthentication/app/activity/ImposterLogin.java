@@ -198,8 +198,6 @@ public class ImposterLogin extends AppCompatActivity {
         });
 
 
-
-
         showAlertDialog("Tvojou ulohou je prepisat zadane hesla, kazde heslo prepis 5-krat. Pre potvrdenie hesla stlac DONE vpravo dole, " +
                 "v pripade ze sa pomylis takisto stlac DONE a zacni znovu. V pripade ze si pripraveny zacat experiment stlac START");
 
@@ -235,6 +233,11 @@ public class ImposterLogin extends AppCompatActivity {
             mUser = mExperimentRandomizer.getNumUser();
         else
             mUser = mExperimentRandomizer.getAlNumUser();
+
+        if (mActiveUser == mUser.getName()) {
+            setUpUser();
+            return;
+        }
 
         mPasswordHintTextView.setVisibility(View.VISIBLE);
         mPasswordHintTextView.setText(mUser.getPassword());

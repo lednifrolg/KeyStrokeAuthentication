@@ -449,7 +449,7 @@ public class TrainActivity extends AppCompatActivity {
                         new Train(getApplication(), mUser).trainUser(Helper.ALNUM_PASSWORD_CODE);
                         Log.d(TAG, "STOP");
                     }
-                });
+                }).start();
 
                 Intent intent3 = new Intent(TrainActivity.this, SecondStageActivity.class);
                 intent3.putExtra(Helper.USER_NAME, mUser.getName());

@@ -83,6 +83,6 @@ public class StartActivity extends AppCompatActivity {
     private <T> void launchActivity(Class<T> loginActivityClass) {
         Intent intent = new Intent(StartActivity.this, loginActivityClass);
         startActivity(intent);
-        finish();
+        //finish();
     }
 }

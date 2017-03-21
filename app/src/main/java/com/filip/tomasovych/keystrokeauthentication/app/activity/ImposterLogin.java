@@ -145,7 +145,7 @@ public class ImposterLogin extends AppCompatActivity {
                                 else
                                     isUser = ad.evaluateEntry(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
 
-                                Toast.makeText(getApplicationContext(), "Successful login : " + isUser, Toast.LENGTH_SHORT).show();
+//                                Toast.makeText(getApplicationContext(), "Successful login : " + isUser, Toast.LENGTH_SHORT).show();
 
                                 List<String> output = new ArrayList<>();
                                 output.add(mActiveUser);

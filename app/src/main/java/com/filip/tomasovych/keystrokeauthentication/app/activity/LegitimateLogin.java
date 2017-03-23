@@ -189,7 +189,7 @@ public class LegitimateLogin extends AppCompatActivity {
 
         mKeyController = new KeyController(getApplicationContext(), mUser);
 
-        showAlertDialog("Tvojou ulohou je prepisat zadane heslo, heslo opis 5-krat pre kazdy sposob pisania. Pre potvrdenie hesla stlac DONE vpravo dole, " +
+        showAlertDialog("Tvojou ulohou je prepisat zadane heslo, heslo opis 3-krat pre kazdy sposob pisania. Pre potvrdenie hesla stlac DONE vpravo dole, " +
                 "v pripade ze sa pomylis takisto stlac DONE a zacni znovu. V pripade ze si pripraveny zacat experiment stlac START");
 
         startButtonDelay();

@@ -82,8 +82,9 @@
     <string name="identification">Identification</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
-    <string name="experiment">Experiment</string>
+    <string name="experiment">Imposter Experiment</string>
     <string name="user_name">User name</string>
     <string name="enter_your_name">Enter your name</string>
+    <string name="register_experiment">Register Experiment</string>
 
 </resources>

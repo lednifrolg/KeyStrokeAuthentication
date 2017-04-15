@@ -19,6 +19,7 @@ public class StartActivity extends AppCompatActivity {
     private Button mRegisterButton;
     private Button mLoginButton;
     private Button mExperimentButton;
+    private Button mRegisterExperimentButton;
     private Context mContext = this;
 
     @Override
@@ -29,12 +30,24 @@ public class StartActivity extends AppCompatActivity {
 
         mRegisterButton = (Button) findViewById(R.id.buttonRegister);
         mLoginButton = (Button) findViewById(R.id.buttonLogin);
-        mExperimentButton = (Button) findViewById(R.id.buttonExperiment);
+        mExperimentButton = (Button) findViewById(R.id.buttonImposterExperiment);
+        mRegisterExperimentButton = (Button) findViewById(R.id.buttonRegisterExperiment);
 
         mRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                launchActivity(LoginActivity.class);
+                Intent intent = new Intent(StartActivity.this, LoginActivity.class);
+                intent.putExtra(Helper.IS_EXPERIMENT, false);
+                startActivity(intent);
+            }
+        });
+
+        mRegisterExperimentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(StartActivity.this, LoginActivity.class);
+                intent.putExtra(Helper.IS_EXPERIMENT, true);
+                startActivity(intent);
             }
         });
 
@@ -85,4 +98,6 @@ public class StartActivity extends AppCompatActivity {
         startActivity(intent);
         //finish();
     }
+
+
 }

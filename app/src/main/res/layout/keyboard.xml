@@ -248,7 +248,8 @@
             android:id="@+id/doneButton"
             android:layout_width="90dp"
             android:layout_height="match_parent"
-            android:text="@string/DONE" />
+            android:text="@string/DONE"
+            tools:ignore="ButtonStyle" />
 
     </LinearLayout>
 

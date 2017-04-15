@@ -43,6 +43,12 @@ public class Train {
     }
 
 
+    /**
+     * Crete and train userl model for authentication
+     *
+     * @param passwordCode NUM or ALNUM password  code
+     * @return
+     */
     public boolean trainUser(int passwordCode) {
         ArrayList<Integer> states = checkStates(mUser.getName(), passwordCode);
         FileInputStream userValuesInputStream;
@@ -71,6 +77,12 @@ public class Train {
         return true;
     }
 
+    /**
+     * Create and train classification model for identification
+     *
+     * @param passwordCode NUM or ALNUM password  code
+     * @return
+     */
     public boolean trainIdentification(int passwordCode) {
         ArrayList<Integer> states = checkStates("Classification", passwordCode);
         FileInputStream usersTypingStyleInputStream;
@@ -100,6 +112,13 @@ public class Train {
         return true;
     }
 
+    /**
+     * Crate identification model for specific typing style
+     *
+     * @param state identificator of typing style
+     * @param name  name of the appropriate file with values from typing
+     * @return
+     */
     private boolean createIdentificationStateModel(int state, String name) {
         CSVReader csvReader;
         try {
@@ -145,6 +164,13 @@ public class Train {
         return true;
     }
 
+    /**
+     * Create authentication model of a user for specific typing style
+     *
+     * @param state state identificator of typing style
+     * @param name  name of the user
+     * @return
+     */
     private boolean createStateModel(int state, String name) {
         CSVReader csvReader;
         try {
@@ -186,6 +212,13 @@ public class Train {
     }
 
 
+    /**
+     * Get all recorded typing styles for given file
+     *
+     * @param fileName     name of the file with recorded typing
+     * @param passwordCode state identificator of typing style
+     * @return List of available typing styles
+     */
     private ArrayList<Integer> checkStates(String fileName, int passwordCode) {
         ArrayList<Integer> states = new ArrayList<>();
 
@@ -208,7 +241,13 @@ public class Train {
         return states;
     }
 
-
+    /**
+     * Create and save Manhattan model used for authentication
+     *
+     * @param columns list of columns (features)
+     * @param state   identificator of typing style
+     * @return
+     */
     private boolean createManhattanModel(ArrayList<ArrayList<Double>> columns, int state) {
         String fileName = state + mUser.getName() + "MODEL.csv";
         ArrayList<Double> model = new ArrayList<>();
@@ -224,6 +263,13 @@ public class Train {
         return true;
     }
 
+    /**
+     * Calculate and save appropriate threshold value for specific authentication model
+     *
+     * @param columns list of columns (features)
+     * @param state   state identificator of typing style
+     * @param model   created model for authentication
+     */
     private void createDistanceThreshold(ArrayList<ArrayList<Double>> columns, int state, ArrayList<Double> model) {
         int r = columns.get(0).size();
         ArrayList<ArrayList<Double>> rows = new ArrayList<>(r);
@@ -255,7 +301,12 @@ public class Train {
         mDbHelper.setThresholdValue(state, mUser, threshold);
     }
 
-
+    /**
+     * Calculate mean of a column
+     *
+     * @param column
+     * @return mean value
+     */
     private double mean(ArrayList<Double> column) {
         double total = 0;
 
@@ -267,7 +318,13 @@ public class Train {
         return total / (double) column.size();
     }
 
-
+    /**
+     * Calculate standard deviation of a column
+     *
+     * @param column
+     * @param mean   mean of a given column
+     * @return standard deviation of column
+     */
     private double stDev(ArrayList<Double> column, double mean) {
         double temp = 0.0;
 
@@ -284,7 +341,13 @@ public class Train {
         return Math.sqrt(meanOfDiffs);
     }
 
-
+    /**
+     * Standardize list of columns with Z-SCORE standardization
+     *
+     * @param columns list of columns (features)
+     * @param state   state identificator of typing style
+     * @param name    name of the user OR classifcation file
+     */
     private void standardize(ArrayList<ArrayList<Double>> columns, int state, String name) {
         ArrayList<Double> stDevs = new ArrayList<>();
         ArrayList<Double> means = new ArrayList<>();
@@ -311,6 +374,13 @@ public class Train {
         write(stDevs, fileName, Context.MODE_APPEND);
     }
 
+    /**
+     * Standardize list of columns with Z-SCORE standardization
+     *
+     * @param columns      list of columns (features)
+     * @param name         name of the user OR classifcation file
+     * @param passwordCode state identificator of typing style
+     */
     private void standardize(ArrayList<ArrayList<Double>> columns, String name, int passwordCode) {
         ArrayList<Double> stDevs = new ArrayList<>();
         ArrayList<Double> means = new ArrayList<>();
@@ -347,6 +417,15 @@ public class Train {
         write(stDevs, fileName, Context.MODE_APPEND);
     }
 
+    /**
+     * Write row into a CSV file
+     *
+     * @param row      list of values
+     * @param fileName name of the CSV file
+     * @param mode     APPEND | PRIVATE etc...
+     * @param <T>      Type of values - DOUBLE, INTEGER...
+     * @return
+     */
     private <T> boolean write(ArrayList<T> row, String fileName, int mode) {
         try {
             FileOutputStream outputStream = mContext.openFileOutput(fileName, mode);
@@ -368,7 +447,14 @@ public class Train {
         return true;
     }
 
-
+    /**
+     * Create and save ty
+     *
+     * @param inputStream
+     * @param typingFileName
+     * @param name
+     * @param passwordCode
+     */
     private void createTypingModel(FileInputStream inputStream, String typingFileName, String name, int passwordCode) {
         CSVReader csvReader;
         try {

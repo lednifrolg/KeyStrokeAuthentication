@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.filip.tomasovych.keystrokeauthentication.R;
 import com.filip.tomasovych.keystrokeauthentication.app.classification.Train;
@@ -58,9 +59,12 @@ public class TrainActivity extends AppCompatActivity {
 
     private boolean mIsNumPassword;
     private boolean mIsIdentify;
+    private boolean mIsExperiment;
 
     private Handler mHandler = new Handler();
 
+    private static final int TIME_INTERVAL = 2000; // # milliseconds, desired time passed between two back presses.
+    private long mBackPressed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,6 +215,7 @@ public class TrainActivity extends AppCompatActivity {
         mUser.setPassword(extras.getString(Helper.USER_PASSWORD));
         mIsNumPassword = extras.getBoolean(Helper.NUM_PASSWORD);
         mIsIdentify = extras.getBoolean(Helper.IS_IDENTIFY);
+        mIsExperiment = extras.getBoolean(Helper.IS_EXPERIMENT);
 
         if (mIsIdentify) {
             //mPasswordEditText.setHint(mUser.getPassword());
@@ -451,17 +456,20 @@ public class TrainActivity extends AppCompatActivity {
                     }
                 }).start();
 
-                Intent intent3 = new Intent(TrainActivity.this, SecondStageActivity.class);
-                intent3.putExtra(Helper.USER_NAME, mUser.getName());
-                intent3.putExtra(Helper.IS_IDENTIFY, mIsIdentify);
-                startActivity(intent3);
+                if (mIsExperiment) {
+                    Intent intent3 = new Intent(TrainActivity.this, SecondStageActivity.class);
+                    intent3.putExtra(Helper.USER_NAME, mUser.getName());
+                    intent3.putExtra(Helper.IS_IDENTIFY, mIsIdentify);
+                    startActivity(intent3);
 
-                Intent intent = new Intent(TrainActivity.this, LegitimateLogin.class);
-                intent.putExtra(Helper.USER_NAME, mUser.getName());
-                intent.putExtra(Helper.USER_ID, mUser.getId());
-                intent.putExtra(Helper.USER_PASSWORD, mUser.getPassword());
-                intent.putExtra(Helper.NUM_PASSWORD, false);
-                startActivity(intent);
+                    Intent intent = new Intent(TrainActivity.this, LegitimateLogin.class);
+                    intent.putExtra(Helper.USER_NAME, mUser.getName());
+                    intent.putExtra(Helper.USER_ID, mUser.getId());
+                    intent.putExtra(Helper.USER_PASSWORD, mUser.getPassword());
+                    intent.putExtra(Helper.NUM_PASSWORD, false);
+                    startActivity(intent);
+                }
+
                 finish();
                 break;
             case 8:
@@ -475,12 +483,14 @@ public class TrainActivity extends AppCompatActivity {
                     }
                 }).start();
 
-                Intent intent2 = new Intent(TrainActivity.this, LegitimateLogin.class);
-                intent2.putExtra(Helper.USER_NAME, mUser.getName());
-                intent2.putExtra(Helper.USER_ID, mUser.getId());
-                intent2.putExtra(Helper.USER_PASSWORD, mUser.getPassword());
-                intent2.putExtra(Helper.NUM_PASSWORD, true);
-                startActivity(intent2);
+                if (mIsExperiment) {
+                    Intent intent2 = new Intent(TrainActivity.this, LegitimateLogin.class);
+                    intent2.putExtra(Helper.USER_NAME, mUser.getName());
+                    intent2.putExtra(Helper.USER_ID, mUser.getId());
+                    intent2.putExtra(Helper.USER_PASSWORD, mUser.getPassword());
+                    intent2.putExtra(Helper.NUM_PASSWORD, true);
+                    startActivity(intent2);
+                }
 
                 finish();
         }
@@ -517,5 +527,16 @@ public class TrainActivity extends AppCompatActivity {
 
             }
         }).start();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mBackPressed + TIME_INTERVAL > System.currentTimeMillis()) {
+            super.onBackPressed();
+            return;
+        } else {
+            Toast.makeText(getBaseContext(), "Tap back button in order to exit", Toast.LENGTH_SHORT).show(); }
+
+        mBackPressed = System.currentTimeMillis();
     }
 }

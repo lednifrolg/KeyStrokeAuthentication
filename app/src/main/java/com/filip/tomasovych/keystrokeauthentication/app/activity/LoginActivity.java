@@ -50,12 +50,18 @@ public class LoginActivity extends AppCompatActivity {
     private DbHelper mDbHelper;
     private User mUser;
 
+    private boolean mIsExperiment;
     private boolean mIsIdentify;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        Bundle extras = getIntent().getExtras();
+        mIsExperiment = extras.getBoolean(Helper.IS_EXPERIMENT);
+
+
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
 
@@ -80,19 +86,23 @@ public class LoginActivity extends AppCompatActivity {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 Log.d(TAG, "CheckedId : " + checkedId);
                 switch (checkedId) {
-                    case R.id.authRadioButton :
+                    case R.id.authRadioButton:
                         Log.d(TAG, "authRadioButton");
                         authRadioButtonClicked();
                         break;
-                    case R.id.identifyRadioButton :
+                    case R.id.identifyRadioButton:
                         Log.d(TAG, "identifyRadioButton");
                         identifyRadioButtonClicked();
                         break;
-                    default :
+                    default:
                         Log.d(TAG, "Radiobutton : something else");
                 }
             }
         });
+
+        if (!mIsExperiment) {
+            mRadioGroup.setVisibility(View.GONE);
+        }
 
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
@@ -107,7 +117,9 @@ public class LoginActivity extends AppCompatActivity {
 
         mDbHelper = DbHelper.getInstance(getApplicationContext());
 
-        showStartupDialog();
+        if (mIsExperiment) {
+            showStartupDialog();
+        }
     }
 
     /**
@@ -304,8 +316,14 @@ public class LoginActivity extends AppCompatActivity {
                 intent.putExtra(Helper.USER_NAME, mUser.getName());
                 intent.putExtra(Helper.USER_ID, mUser.getId());
                 intent.putExtra(Helper.USER_PASSWORD, mUser.getPassword());
-                intent.putExtra(Helper.NUM_PASSWORD, false);
                 intent.putExtra(Helper.IS_IDENTIFY, mIsIdentify);
+                intent.putExtra(Helper.IS_EXPERIMENT, mIsExperiment);
+
+                if (isNumeric(mPassword)) {
+                    intent.putExtra(Helper.NUM_PASSWORD, true);
+                } else {
+                    intent.putExtra(Helper.NUM_PASSWORD, false);
+                }
 
                 startActivity(intent);
                 mUser = null;
@@ -319,7 +337,9 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
 
-
+        private boolean isNumeric(String s) {
+            return s.matches("[-+]?\\d*\\.?\\d+");
+        }
 
         @Override
         protected void onCancelled() {

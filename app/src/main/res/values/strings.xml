@@ -9,6 +9,7 @@
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_user_exists">This user already exists</string>
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
@@ -86,5 +87,7 @@
     <string name="user_name">User name</string>
     <string name="enter_your_name">Enter your name</string>
     <string name="register_experiment">Register Experiment</string>
+    <string name="log_in">Log In</string>
+    <string name="username">Username</string>
 
 </resources>

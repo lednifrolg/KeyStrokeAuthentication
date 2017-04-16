@@ -210,9 +210,10 @@ public class DbHelper extends SQLiteOpenHelper {
 
 
     /**
-     * Get user from database by his name
+     * Get user from database by his name and password
      *
      * @param name User name
+     * @param password User password
      * @return User object with name and Id or null if no user was found
      */
     public User getUser(String name, String password) {
@@ -247,6 +248,85 @@ public class DbHelper extends SQLiteOpenHelper {
         return user;
     }
 
+    /**
+     * Get user from database by his name
+     *
+     * @param name User name
+     * @return User object with name and Id or null if no user was found
+     */
+    public User getUser(String name) {
+        User user = null;
+
+        String query = "SELECT * FROM " + TABLE_USER +
+                " WHERE " + USER_NAME + " LIKE '" + name + "'";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                user = new User();
+
+                user.setId(cursor.getInt(cursor.getColumnIndex(USER_ID)));
+                user.setName(cursor.getString(cursor.getColumnIndex(USER_NAME)));
+            } else {
+                return null;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d(TAG, "Error getting user from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return user;
+    }
+
+    /**
+     * Get user from database by his name
+     *
+     * @param name User name
+     * @param isUnique is username unique
+     * @return User object with name and Id or null if no user was found
+     */
+    public User getUser(String name, boolean isUnique) {
+        User user = null;
+
+        String query = "SELECT * FROM " + TABLE_USER +
+                " WHERE " + USER_NAME + " LIKE '" + name + "'";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                user = new User();
+
+                user.setId(cursor.getInt(cursor.getColumnIndex(USER_ID)));
+                user.setName(cursor.getString(cursor.getColumnIndex(USER_NAME)));
+                user.setPassword(cursor.getString(cursor.getColumnIndex(USER_PASSWORD)));
+            } else {
+                user = null;
+            }
+
+            if (cursor.getCount() > 1) {
+                user = null;
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d(TAG, "Error getting user from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        Log.d(TAG, user.toString());
+
+        return user;
+    }
 
     /**
      * Insert User to database

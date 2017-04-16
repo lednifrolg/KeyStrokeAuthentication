@@ -1,157 +1,288 @@
 package com.filip.tomasovych.keystrokeauthentication.app.activity;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
+import android.graphics.Rect;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioGroup;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.filip.tomasovych.keystrokeauthentication.R;
+import com.filip.tomasovych.keystrokeauthentication.app.classification.AnomalyDetector;
 import com.filip.tomasovych.keystrokeauthentication.app.database.DbHelper;
+import com.filip.tomasovych.keystrokeauthentication.app.model.KeyBuffer;
+import com.filip.tomasovych.keystrokeauthentication.app.model.KeyObject;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
+import com.filip.tomasovych.keystrokeauthentication.app.util.CSVWriter;
+import com.filip.tomasovych.keystrokeauthentication.app.util.ExperimentRandomizer;
 import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
+import com.filip.tomasovych.keystrokeauthentication.app.util.KeyController;
 
-/**
- * A login screen that offers login via email/password.
- */
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoginActivity extends AppCompatActivity {
+
 
     private static final String TAG = LoginActivity.class.getSimpleName();
 
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private UserLoginTask mAuthTask = null;
+    private String mQWERTY;
+    private String mQWERTYWithDot;
+    private String mNumbers;
+    private EditText mPasswordEditText;
+    private Button[] mLetterButtons;
+    private Button[] mNumberButtons;
+    private KeyObject[] mKeyObjects;
+    private int mKeySize;
+    private Button mDoneButton;
+    private Button mShiftButton;
+    //    private Button mBackspaceButton;
+    private Button mStartButton;
+    private TextView mTrainHintTextView;
+    private TextView mCounterTextView;
+    private TextView mPasswordHintTextView;
+    private ProgressBar mCounterProgressBar;
 
-    // UI references.
-    private AutoCompleteTextView mEmailView;
-    private EditText mPasswordView;
-    private View mProgressView;
-    private View mLoginFormView;
-    private RadioGroup mRadioGroup;
-
-    private DbHelper mDbHelper;
     private User mUser;
+    private KeyBuffer mKeyBuffer;
+    private KeyController mKeyController;
+    private int mErrorsNum;
+    private String mActiveUser;
 
-    private boolean mIsExperiment;
+    private int mState;
+    private int mCounter;
+    private boolean mIsShiftPressed;
+
+    private boolean mIsNumPassword;
     private boolean mIsIdentify;
+
+
+    private Handler mHandler = new Handler();
+    private DbHelper mDbHelper;
+
+
+    private static final int NUMBER_OF_REPS = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_legitimate_login);
 
-        Bundle extras = getIntent().getExtras();
-        mIsExperiment = extras.getBoolean(Helper.IS_EXPERIMENT);
+        mDbHelper = DbHelper.getInstance(getApplicationContext());
 
+        mState = 8;
+        mCounter = 0;
+        mErrorsNum = 0;
+        mKeySize = 0;
+        mKeyBuffer = new KeyBuffer();
 
-        // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        mTrainHintTextView = (TextView) findViewById(R.id.trainHintTextView);
 
+        mPasswordEditText = (EditText) findViewById(R.id.trainPassword);
+        mPasswordEditText.requestFocus();
+        mPasswordEditText.setInputType(InputType.TYPE_NULL);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        mCounterTextView = (TextView) findViewById(R.id.counterTextView);
+        mCounterProgressBar = (ProgressBar) findViewById(R.id.countProgressBar);
+        mCounterProgressBar.setMax(NUMBER_OF_REPS);
+
+        mPasswordHintTextView = (TextView) findViewById(R.id.passwordHintTextView);
+
+        setUpUser();
+
+        if (mIsNumPassword) {
+            LinearLayout keyboard = (LinearLayout) findViewById(R.id.xKeyBoard);
+            LinearLayout numKeyboard = (LinearLayout) findViewById(R.id.numKeyBoard);
+            keyboard.setVisibility(View.GONE);
+            numKeyboard.setVisibility(View.VISIBLE);
+
+            setUpNumberButtons();
+
+            mDoneButton = (Button) findViewById(R.id.numDoneButton);
+
+        } else {
+            setUpKeyboardButtons();
+            setUpNumberButtons();
+
+            mDoneButton = (Button) findViewById(R.id.doneButton);
+        }
+
+        mDoneButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    String pw = mPasswordEditText.getText().toString();
+                    mPasswordEditText.setText("");
+
+                    if (mUser.getPassword().equals(pw)) {
+
+                        AnomalyDetector ad = new AnomalyDetector(mUser, getApplicationContext());
+
+                        boolean isUser;
+                        if (mIsNumPassword)
+                            isUser = ad.evaluateEntry(mKeyBuffer, Helper.NUM_PASSWORD_CODE);
+                        else
+                            isUser = ad.evaluateEntry(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
+
+                        Toast.makeText(getApplicationContext(), "Successful login : " + isUser, Toast.LENGTH_SHORT).show();
+
+                        List<String> output = new ArrayList<>();
+                        output.add(mActiveUser);
+                        output.add(mUser.getName());
+                        output.add(mUser.getPassword());
+                        output.add(String.valueOf(mIsNumPassword));
+                        output.add(String.valueOf(isUser));
+
+                        try {
+                            FileOutputStream outputStream = getApplicationContext().openFileOutput("LoginResults.csv", Context.MODE_APPEND);
+                            CSVWriter.writeLine(outputStream, output);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        mKeyController.save(mKeyBuffer, mState, 9);
+
+
+                        mErrorsNum = 0;
+                    }
+
+                    mKeyBuffer.clear();
                 }
+
                 return false;
             }
         });
 
-        mIsIdentify = false;
+    }
 
-        mRadioGroup = (RadioGroup) findViewById(R.id.radioGroup);
-        mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+    /**
+     * Set user for experiment
+     */
+    private void setUpUser() {
+        Bundle extras = getIntent().getExtras();
+        mActiveUser = extras.getString(Helper.USER_NAME);
+        mUser = mDbHelper.getUser(mActiveUser, true);
+        Log.d(TAG, mUser.toString());
+
+        if (mUser == null) {
+            Toast.makeText(getBaseContext(), "Error loading user data", Toast.LENGTH_SHORT);
+            return;
+        }
+
+        mIsNumPassword = Helper.isNumeric(mUser.getPassword());
+
+        mKeyController = new KeyController(getApplicationContext(), mUser);
+    }
+
+    /**
+     * Find keyboard buttons and set up their onTouchListeners
+     */
+    private void setUpKeyboardButtons() {
+        mQWERTY = "qwertyuiopasdfghjklzxcvbnm_";
+        mQWERTYWithDot = "qwertyuiopasdfghjklzxcvbnm.";
+
+        mKeySize = mQWERTY.length();
+
+        mLetterButtons = new Button[mQWERTY.length()];
+        mKeyObjects = new KeyObject[mQWERTY.length() + 10];
+        mIsShiftPressed = false;
+
+
+        for (int i = 0; i < mQWERTY.length(); i++) {
+            int id = getResources().getIdentifier(mQWERTY.charAt(i) + "Button", "id", getPackageName());
+            mLetterButtons[i] = (Button) findViewById(id);
+
+            final int finalI = i;
+            mLetterButtons[i].setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    // create KeyObject when button is pressed and assign pressed features
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        mKeyObjects[finalI] = new KeyObject();
+
+                        Rect buttonShape = new Rect();
+                        v.getLocalVisibleRect(buttonShape);
+
+                        mKeyObjects[finalI].setPressedPressure(event.getPressure());
+                        mKeyObjects[finalI].setPressedTime(event.getEventTime());
+
+                        mKeyObjects[finalI].setCoordXPressed(event.getX());
+                        mKeyObjects[finalI].setCoordYPressed(event.getY());
+
+                        mKeyObjects[finalI].setCenterXCoord(buttonShape.exactCenterX());
+                        mKeyObjects[finalI].setCenterYCoord(buttonShape.exactCenterY());
+                    }
+
+                    // assign release features, check if button is canceled
+                    if (event.getAction() == MotionEvent.ACTION_UP) {
+                        mKeyObjects[finalI].setReleasedPressure(event.getPressure());
+                        mKeyObjects[finalI].setReleasedTime(event.getEventTime());
+
+                        mKeyObjects[finalI].setCoordXReleased(event.getX());
+                        mKeyObjects[finalI].setCoordYReleased(event.getY());
+
+                        if (mIsShiftPressed) {
+                            mKeyObjects[finalI].setKeyChar(Character.toUpperCase(mQWERTYWithDot.charAt(finalI)));
+                        } else {
+                            mKeyObjects[finalI].setKeyChar(mQWERTYWithDot.charAt(finalI));
+                        }
+
+                        Log.d(TAG, mKeyObjects[finalI].toString());
+
+
+                        // add key to buffer and update EditText
+                        if (mKeyBuffer.add(mKeyObjects[finalI]))
+                            if (mIsShiftPressed) {
+                                mPasswordEditText.append((mQWERTYWithDot.charAt(finalI) + "").toUpperCase());
+                                switchToLowerCase();
+                            } else {
+                                mPasswordEditText.append(mQWERTYWithDot.charAt(finalI) + "");
+                            }
+                    }
+
+                    return false;
+                }
+            });
+        }
+
+        mShiftButton = (Button) findViewById(R.id.shiftButton);
+        mShiftButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                Log.d(TAG, "CheckedId : " + checkedId);
-                switch (checkedId) {
-                    case R.id.authRadioButton:
-                        Log.d(TAG, "authRadioButton");
-                        authRadioButtonClicked();
-                        break;
-                    case R.id.identifyRadioButton:
-                        Log.d(TAG, "identifyRadioButton");
-                        identifyRadioButtonClicked();
-                        break;
-                    default:
-                        Log.d(TAG, "Radiobutton : something else");
+            public void onClick(View v) {
+                if (mIsShiftPressed) {
+                    switchToLowerCase();
+                } else {
+                    switchToUpperCase();
                 }
             }
         });
-
-        if (!mIsExperiment) {
-            mRadioGroup.setVisibility(View.GONE);
-        }
-
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
-
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
-
-        mDbHelper = DbHelper.getInstance(getApplicationContext());
-
-        if (mIsExperiment) {
-            showStartupDialog();
-        }
     }
 
     /**
-     * set static password for a user, disable edit on password field
+     * Show simple alert dialog
+     *
+     * @param message message to be shown in dialog
      */
-    private void identifyRadioButtonClicked() {
-        mPasswordView.setText(Helper.STATIC_PASSWORD);
-        mPasswordView.setFocusable(false);
-        mPasswordView.setFocusableInTouchMode(false);
-        mPasswordView.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-        mIsIdentify = true;
-    }
-
-    /**
-     * reset password filed, enable edit
-     */
-    private void authRadioButtonClicked() {
-        mPasswordView.setText("");
-        mPasswordView.setFocusable(true);
-        mPasswordView.setFocusableInTouchMode(true);
-        mPasswordView.getInputType();
-        mPasswordView.setInputType(129);
-        mIsIdentify = false;
-    }
-
-    private void showStartupDialog() {
+    private void showAlertDialog(String message) {
         AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
         alertDialog.setTitle("Password");
+        alertDialog.setMessage(message);
         alertDialog.setCancelable(false);
-        alertDialog.setMessage("Experiment spociva z pisania hesla. " +
-                "Ako username zadaj AIS meno (xPriezvisko) a ako heslo si zvol heslo ktore si pouzival napriklad pred rokom, " +
-                "alebo nieco co vies dostatocne rychlo pisat");
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -162,190 +293,92 @@ public class LoginActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-
     /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
+     * Change keyboard to uppercase letters
      */
-    private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
+    private void switchToUpperCase() {
+        for (int i = 0; i < mLetterButtons.length; i++) {
+            mLetterButtons[i].setText((mQWERTYWithDot.charAt(i) + "").toUpperCase());
         }
+        mIsShiftPressed = true;
 
-        // Reset errors.
-        mEmailView.setError(null);
-        mPasswordView.setError(null);
-
-        // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
-
-        boolean cancel = false;
-        View focusView = null;
-
-        // Check for a valid password, if the user entered one.
-        if (TextUtils.isEmpty(password) || !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
-            cancel = true;
-        }
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
-            cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
-            focusView = mEmailView;
-            cancel = true;
-        }
-
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView.requestFocus();
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
-        }
-    }
-
-    private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        // return email.contains("@");
-        return email.length() > 4;
-    }
-
-    private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return (password.length() > 5 && password.matches(".*[a-zA-Z]+.*"));
     }
 
     /**
-     * Shows the progress UI and hides the login form.
+     * Change keyboard to lowercase letters
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+    private void switchToLowerCase() {
+        for (int i = 0; i < mLetterButtons.length; i++) {
+            mLetterButtons[i].setText((mQWERTYWithDot.charAt(i) + "").toLowerCase());
         }
+        mIsShiftPressed = false;
     }
 
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    public void setUpNumberButtons() {
+        mNumbers = "1234567890";
+        mNumberButtons = new Button[mNumbers.length()];
 
-        private final String mEmail;
-        private final String mPassword;
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
+        if (mIsNumPassword) {
+            mKeyObjects = new KeyObject[mNumbers.length()];
         }
 
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
 
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
+        for (int i = mKeySize; i < mKeySize + mNumbers.length(); i++) {
+            int id;
 
-
-            mUser = mDbHelper.getUser(mEmail, mPassword);
-
-            if (mUser == null) {
-                mUser = new User(mEmail, mPassword);
-
-                long id = mDbHelper.insertUser(mUser);
-
-                if (id == -1)
-                    return false;
-
-                mUser.setId(id);
-            }
-
-            // TODO: register the new account here.
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                Intent intent = new Intent(LoginActivity.this, TrainActivity.class);
-
-                intent.putExtra(Helper.USER_NAME, mUser.getName());
-                intent.putExtra(Helper.USER_ID, mUser.getId());
-                intent.putExtra(Helper.USER_PASSWORD, mUser.getPassword());
-                intent.putExtra(Helper.IS_IDENTIFY, mIsIdentify);
-                intent.putExtra(Helper.IS_EXPERIMENT, mIsExperiment);
-
-                if (isNumeric(mPassword)) {
-                    intent.putExtra(Helper.NUM_PASSWORD, true);
-                } else {
-                    intent.putExtra(Helper.NUM_PASSWORD, false);
-                }
-
-                startActivity(intent);
-                mUser = null;
-                mEmailView.setText("");
-                mPasswordView.setText("");
-
-                finish();
+            if (mIsNumPassword) {
+                id = getResources().getIdentifier("Button" + mNumbers.charAt(i), "id", getPackageName());
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                id = getResources().getIdentifier("ButtonL" + mNumbers.charAt(i - mKeySize), "id", getPackageName());
             }
+
+            mNumberButtons[i - mKeySize] = (Button) findViewById(id);
+
+            final int finalI = i;
+
+            mNumberButtons[i - mKeySize].setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    // create KeyObject when button is pressed and assign pressed features
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        mKeyObjects[finalI] = new KeyObject();
+
+                        Rect buttonShape = new Rect();
+                        v.getLocalVisibleRect(buttonShape);
+
+                        mKeyObjects[finalI].setPressedPressure(event.getPressure());
+                        mKeyObjects[finalI].setPressedTime(event.getEventTime());
+
+                        mKeyObjects[finalI].setCoordXPressed(event.getX());
+                        mKeyObjects[finalI].setCoordYPressed(event.getY());
+
+                        mKeyObjects[finalI].setCenterXCoord(buttonShape.exactCenterX());
+                        mKeyObjects[finalI].setCenterYCoord(buttonShape.exactCenterY());
+                    }
+
+                    // assign release features, check if button is canceled
+                    if (event.getAction() == MotionEvent.ACTION_UP) {
+                        mKeyObjects[finalI].setReleasedPressure(event.getPressure());
+                        mKeyObjects[finalI].setReleasedTime(event.getEventTime());
+
+                        mKeyObjects[finalI].setCoordXReleased(event.getX());
+                        mKeyObjects[finalI].setCoordYReleased(event.getY());
+
+                        mKeyObjects[finalI].setKeyChar(mNumbers.charAt(finalI - mKeySize));
+
+                        Log.d(TAG, mKeyObjects[finalI].toString());
+
+
+                        // add key to buffer and update EditText
+                        if (mKeyBuffer.add(mKeyObjects[finalI]))
+                            mPasswordEditText.append(mNumbers.charAt(finalI - mKeySize) + "");
+                    }
+
+
+                    return false;
+                }
+            });
         }
 
-        private boolean isNumeric(String s) {
-            return s.matches("[-+]?\\d*\\.?\\d+");
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
     }
 }
-

@@ -16,4 +16,8 @@ public final class Helper {
     public static String IS_EXPERIMENT = "IsExperiment";
     public final static int NUM_PASSWORD_CODE = 0x0000;
     public final static int ALNUM_PASSWORD_CODE = 0x0001;
+
+    public static boolean isNumeric(String s) {
+        return s.matches("\\d*");
+    }
 }

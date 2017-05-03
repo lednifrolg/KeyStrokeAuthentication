@@ -20,19 +20,18 @@ public class Identificator {
 
     private final static String TAG = Identificator.class.getSimpleName();
 
-    private User mUser;
     private Context mContext;
     private DbHelper mDbHelper;
 
-    public Identificator(User user, Context context) {
+    public Identificator(Context context) {
         mContext = context;
-        mUser = user;
         mDbHelper = DbHelper.getInstance(context);
     }
 
 
     public String predict(KeyBuffer keyBuffer, int passwordCode) {
         int style = getStyle(keyBuffer, passwordCode);
+        String predictedUser = null;
 
         ArrayList<Double> entry = new ArrayList<>();
         String modelName = style + "ClassificationSVM";
@@ -43,13 +42,13 @@ public class Identificator {
 
             List<String> labelValues = mDbHelper.getUsersForIdentifiaction();
 
-            Evaluator.predictUser(keyBuffer, modelInputStream, valuesInputStream, labelValues, passwordCode);
+            predictedUser = Evaluator.predictUser(keyBuffer, modelInputStream, valuesInputStream, labelValues, passwordCode);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
 
-        return null;
+        return predictedUser;
     }
 
     private int getStyle(KeyBuffer keyBuffer, int passwordCode) {
@@ -58,7 +57,7 @@ public class Identificator {
             FileInputStream vals = null;
 
             if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
-                model = mContext.openFileInput("ClassificationSVMALNUN");
+                model = mContext.openFileInput("ClassificationSVMALNUM");
                 vals = mContext.openFileInput("ClassificationVALUESALNUM.csv");
             } else if (passwordCode == Helper.NUM_PASSWORD_CODE) {
                 model = mContext.openFileInput("ClassificationSVMNUM");

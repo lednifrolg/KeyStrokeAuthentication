@@ -35,7 +35,7 @@ public class KeyController {
     public boolean save(KeyBuffer keyBuffer, int state, int errors) {
         long experimentID;
 
-        if (keyBuffer.getSize() > 0) {
+        if (keyBuffer.getSize() > 0 && errors != 10) {
             experimentID = mDbHelper.insertExperiment(mUser, state, errors);
 
             if (experimentID != -1) {

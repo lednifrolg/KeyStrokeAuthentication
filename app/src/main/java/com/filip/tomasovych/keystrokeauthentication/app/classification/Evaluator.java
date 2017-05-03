@@ -117,12 +117,12 @@ public final class Evaluator {
 //            System.out.println(dataset.classAttribute().value((int) pred));
 
             Log.d(TAG, "PRED : " + dataset.classAttribute().value((int) pred));
-            user = dataset.classAttribute().value((int) pred);
+            user = dataset.classAttribute().value((int) pred).toString();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-
+        Log.d(TAG, "PRED : " + user);
         return user;
     }
 

@@ -37,8 +37,11 @@
         <activity
             android:name=".app.activity.ImposterLogin"
             android:exported="true" />
+        <activity
+            android:name=".app.activity.IdentificationActivity"
+            android:exported="true" />
         <activity android:name=".app.activity.LegitimateLogin" />
-        <activity android:name=".app.activity.LoginActivity"></activity>
+        <activity android:name=".app.activity.LoginActivity" />
     </application>
 
 </manifest>

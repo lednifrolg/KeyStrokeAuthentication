@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.filip.tomasovych.keystrokeauthentication.R;
+import com.filip.tomasovych.keystrokeauthentication.app.classification.Train;
 import com.filip.tomasovych.keystrokeauthentication.app.database.DbHelper;
 import com.filip.tomasovych.keystrokeauthentication.app.model.User;
 import com.filip.tomasovych.keystrokeauthentication.app.util.Helper;
@@ -23,6 +25,7 @@ public class StartActivity extends AppCompatActivity {
     private Button mLoginButton;
     private Button mImposterExperiment;
     private Button mRegisterExperimentButton;
+    private Button mIdentificaitonAlnum;
     private Context mContext = this;
 
     private DbHelper mDbHelper;
@@ -39,6 +42,8 @@ public class StartActivity extends AppCompatActivity {
         mLoginButton = (Button) findViewById(R.id.buttonLogin);
         mImposterExperiment = (Button) findViewById(R.id.buttonImposterExperiment);
         mRegisterExperimentButton = (Button) findViewById(R.id.buttonRegisterExperiment);
+        mIdentificaitonAlnum = (Button) findViewById(R.id.buttonIdentificationAlnum);
+
 
         mRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -135,6 +140,17 @@ public class StartActivity extends AppCompatActivity {
                 alertDialogAndroid.show();
             }
         });
+
+        mIdentificaitonAlnum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(StartActivity.this, IdentificationActivity.class);
+                intent.putExtra(Helper.NUM_PASSWORD, false);
+                startActivity(intent);
+            }
+        });
+
+
     }
 
     private <T> void launchActivity(Class<T> loginActivityClass) {

@@ -465,6 +465,31 @@ public class DbHelper extends SQLiteOpenHelper {
         return userNames;
     }
 
+    public List<String> getUsersForIdentifiactionNUM() {
+        List<String> userNames = new ArrayList<>();
+
+        String query = "SELECT * FROM " + TABLE_USER +
+                " WHERE " + USER_PASSWORD + " LIKE '" + Helper.STATIC_NUM_PASSWORD + "'";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        try {
+            while (cursor.moveToNext()) {
+                userNames.add(cursor.getString(cursor.getColumnIndex(USER_NAME)));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Log.d(TAG, "Error getting user names from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return userNames;
+    }
+
     /**
      * Set threshold value used for anomaly detection
      *

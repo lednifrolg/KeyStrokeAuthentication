@@ -77,23 +77,26 @@
             </android.support.design.widget.TextInputLayout>
 
             <RadioGroup
+                android:id="@+id/radioGroup"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:id="@+id/radioGroup">
-
-                <RadioButton
-                    android:id="@+id/authRadioButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/auth_radio_title"
-                    android:checked="true" />
+                android:layout_height="wrap_content"
+                android:checkedButton="@+id/identifyRadioButton"
+                android:orientation="horizontal">
 
                 <RadioButton
                     android:id="@+id/identifyRadioButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:checked="true"
                     android:text="@string/identify_radio_title" />
+
+                <RadioButton
+                    android:id="@+id/identifyNumRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/identification_numeric"
+                    tools:layout_editor_absoluteX="245dp"
+                    tools:layout_editor_absoluteY="127dp" />
 
             </RadioGroup>
 
@@ -108,4 +111,5 @@
 
         </LinearLayout>
     </ScrollView>
+
 </android.support.constraint.ConstraintLayout>

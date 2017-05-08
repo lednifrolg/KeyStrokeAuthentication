@@ -579,8 +579,13 @@ public class Train {
 
         ArrayList<Attribute> atts = new ArrayList<>();
         double[] vals;
+        List<String> labelValues;
 
-        List<String> labelValues = mDbHelper.getUsersForIdentifiaction();
+        if (state < 4) {
+            labelValues = mDbHelper.getUsersForIdentifiaction();
+        } else {
+            labelValues = mDbHelper.getUsersForIdentifiactionNUM();
+        }
 
 
         for (String label : labels) {

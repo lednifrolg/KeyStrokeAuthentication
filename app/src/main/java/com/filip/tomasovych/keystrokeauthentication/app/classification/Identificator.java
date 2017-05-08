@@ -39,8 +39,13 @@ public class Identificator {
         try {
             FileInputStream modelInputStream = mContext.openFileInput(modelName);
             FileInputStream valuesInputStream = mContext.openFileInput(valuesFileName);
+            List<String> labelValues;
 
-            List<String> labelValues = mDbHelper.getUsersForIdentifiaction();
+            if (passwordCode == Helper.ALNUM_PASSWORD_CODE) {
+                labelValues = mDbHelper.getUsersForIdentifiaction();
+            } else {
+                labelValues = mDbHelper.getUsersForIdentifiactionNUM();
+            }
 
             predictedUser = Evaluator.predictUser(keyBuffer, modelInputStream, valuesInputStream, labelValues, passwordCode);
         } catch (FileNotFoundException e) {

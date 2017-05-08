@@ -25,7 +25,9 @@ public class StartActivity extends AppCompatActivity {
     private Button mLoginButton;
     private Button mImposterExperiment;
     private Button mRegisterExperimentButton;
+    private Button mRegisterIdentification;
     private Button mIdentificaitonAlnum;
+    private Button mIdentificaitonNum;
     private Context mContext = this;
 
     private DbHelper mDbHelper;
@@ -43,13 +45,15 @@ public class StartActivity extends AppCompatActivity {
         mImposterExperiment = (Button) findViewById(R.id.buttonImposterExperiment);
         mRegisterExperimentButton = (Button) findViewById(R.id.buttonRegisterExperiment);
         mIdentificaitonAlnum = (Button) findViewById(R.id.buttonIdentificationAlnum);
-
+        mRegisterIdentification = (Button) findViewById(R.id.buttonRegisterIdentification);
+        mIdentificaitonNum = (Button) findViewById(R.id.buttonIdentificationNum);
 
         mRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(StartActivity.this, RegisterActivity.class);
                 intent.putExtra(Helper.IS_EXPERIMENT, false);
+                intent.putExtra(Helper.IS_IDENTIFY, false);
                 startActivity(intent);
             }
         });
@@ -59,6 +63,17 @@ public class StartActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(StartActivity.this, RegisterActivity.class);
                 intent.putExtra(Helper.IS_EXPERIMENT, true);
+                intent.putExtra(Helper.IS_IDENTIFY, false);
+                startActivity(intent);
+            }
+        });
+
+        mRegisterIdentification.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(StartActivity.this, RegisterActivity.class);
+                intent.putExtra(Helper.IS_EXPERIMENT, false);
+                intent.putExtra(Helper.IS_IDENTIFY, true);
                 startActivity(intent);
             }
         });
@@ -150,6 +165,14 @@ public class StartActivity extends AppCompatActivity {
             }
         });
 
+        mIdentificaitonNum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(StartActivity.this, IdentificationActivity.class);
+                intent.putExtra(Helper.NUM_PASSWORD, true);
+                startActivity(intent);
+            }
+        });
 
     }
 

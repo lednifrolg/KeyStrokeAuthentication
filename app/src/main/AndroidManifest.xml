@@ -26,7 +26,7 @@
         </activity>
         <activity
             android:name=".app.activity.RegisterActivity"
-            android:label="@string/app_name" />
+            android:label="@string/title_registration" />
         <activity
             android:name=".app.activity.TrainActivity"
             android:label="@string/title_activity_train"
@@ -36,11 +36,13 @@
             android:label="@string/title_activity_second_stage" />
         <activity
             android:name=".app.activity.ImposterLogin"
-            android:exported="true" />
+            android:label="@string/experiment" />
         <activity
             android:name=".app.activity.IdentificationActivity"
-            android:exported="true" />
-        <activity android:name=".app.activity.LegitimateLogin" />
+            android:label="@string/identification" />
+        <activity
+            android:name=".app.activity.LegitimateLogin"
+            android:label="@string/login" />
         <activity android:name=".app.activity.LoginActivity" />
     </application>
 

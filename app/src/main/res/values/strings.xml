@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KeystrokeAuthentication</string>
+    <string name="app_name">Keystroke Authentication</string>
 
     <!-- Strings related to login -->
     <string name="prompt_username">Username</string>
@@ -20,7 +20,7 @@
     <string name="training_hint_two_thumbs">Pis heslo s dvoma palcami, opakuj 10 krat</string>
     <string name="training_hint_index">Pis heslo iba s ukazovakom, opakuj 10 krat</string>
 
-    <string name="title_activity_train">Normal password</string>
+    <string name="title_activity_train">Training phase</string>
 
     <string name="auth_radio_title">Authentication</string>
     <string name="identify_radio_title">Identification</string>
@@ -71,7 +71,8 @@
     <string name="SPACE">|____|</string>
     <string name="DONE">DONE</string>
     <string name="start_training">Start</string>
-    <string name="title_activity_second_stage">Num password</string>
+    <string name="title_activity_second_stage">Numeric Experiment</string>
+    <string name="title_registration">Registration</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
@@ -89,5 +90,9 @@
     <string name="register_experiment">Register Experiment</string>
     <string name="log_in">Log In</string>
     <string name="username">Username</string>
+    <string name="identifiaction_num">Identifiaction NUM</string>
+    <string name="identification_numeric">Identification Numeric</string>
+    <string name="identification_num">Identification Num</string>
+    <string name="register_identification">Register Identification</string>
 
 </resources>

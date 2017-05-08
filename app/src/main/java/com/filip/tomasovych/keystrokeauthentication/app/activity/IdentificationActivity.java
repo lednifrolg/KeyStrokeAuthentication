@@ -139,12 +139,15 @@ public class IdentificationActivity extends AppCompatActivity {
                         Identificator id = new Identificator(getApplicationContext());
 
                         String user;
-                        if (mIsNumPassword)
+                        if (mIsNumPassword) {
                             user = id.predict(mKeyBuffer, Helper.NUM_PASSWORD_CODE);
-                        else
+                        } else {
                             user = id.predict(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
+                        }
 
-                        Toast.makeText(getApplicationContext(), "Identified user : " + user, Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), "Identified user : " + user, Toast.LENGTH_SHORT).show();
+
+                        showAlertDialog("Identified user : " + user);
 
                         List<String> output = new ArrayList<>();
                         output.add(String.valueOf(mIsNumPassword));
@@ -181,6 +184,13 @@ public class IdentificationActivity extends AppCompatActivity {
         mIsNumPassword = extras.getBoolean(Helper.NUM_PASSWORD);
 
         mKeyController = new KeyController(getApplicationContext(), mUser);
+
+        mPasswordHintTextView.setVisibility(View.VISIBLE);
+        if (mIsNumPassword) {
+            mPasswordHintTextView.setText(Helper.STATIC_NUM_PASSWORD);
+        } else {
+            mPasswordHintTextView.setText(Helper.STATIC_PASSWORD);
+        }
     }
 
     /**
@@ -274,7 +284,7 @@ public class IdentificationActivity extends AppCompatActivity {
      */
     private void showAlertDialog(String message) {
         AlertDialog alertDialog = new AlertDialog.Builder(IdentificationActivity.this).create();
-        alertDialog.setTitle("Password");
+        alertDialog.setTitle("Identification");
         alertDialog.setMessage(message);
         alertDialog.setCancelable(false);
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",

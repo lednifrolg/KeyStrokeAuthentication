@@ -60,7 +60,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         mIsExperiment = extras.getBoolean(Helper.IS_EXPERIMENT);
-
+        mIsIdentify = extras.getBoolean(Helper.IS_IDENTIFY);
 
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -78,7 +78,6 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        mIsIdentify = false;
 
         mRadioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -86,13 +85,17 @@ public class RegisterActivity extends AppCompatActivity {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 Log.d(TAG, "CheckedId : " + checkedId);
                 switch (checkedId) {
-                    case R.id.authRadioButton:
-                        Log.d(TAG, "authRadioButton");
-                        authRadioButtonClicked();
-                        break;
+//                    case R.id.authRadioButton:
+//                        Log.d(TAG, "authRadioButton");
+//                        authRadioButtonClicked();
+//                        break;
                     case R.id.identifyRadioButton:
                         Log.d(TAG, "identifyRadioButton");
                         identifyRadioButtonClicked();
+                        break;
+                    case R.id.identifyNumRadioButton:
+                        Log.d(TAG, "identifyNumRadioButton");
+                        identifyNumericRadioButtonClicked();
                         break;
                     default:
                         Log.d(TAG, "Radiobutton : something else");
@@ -100,8 +103,10 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        if (!mIsExperiment) {
+        if (!mIsIdentify) {
             mRadioGroup.setVisibility(View.GONE);
+        } else {
+            identifyRadioButtonClicked();
         }
 
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
@@ -134,6 +139,17 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     /**
+     * set static password for a user, disable edit on password field
+     */
+    private void identifyNumericRadioButtonClicked() {
+        mPasswordView.setText(Helper.STATIC_NUM_PASSWORD);
+        mPasswordView.setFocusable(false);
+        mPasswordView.setFocusableInTouchMode(false);
+        mPasswordView.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+        mIsIdentify = true;
+    }
+
+    /**
      * reset password filed, enable edit
      */
     private void authRadioButtonClicked() {
@@ -147,7 +163,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void showStartupDialog() {
         AlertDialog alertDialog = new AlertDialog.Builder(RegisterActivity.this).create();
-        alertDialog.setTitle("Password");
+        alertDialog.setTitle("Experiment");
         alertDialog.setCancelable(false);
         alertDialog.setMessage("Experiment spociva z pisania hesla. " +
                 "Ako username zadaj AIS meno (xPriezvisko) a ako heslo si zvol heslo ktore si pouzival napriklad pred rokom, " +

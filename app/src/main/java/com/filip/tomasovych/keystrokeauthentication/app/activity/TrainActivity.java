@@ -123,16 +123,6 @@ public class TrainActivity extends AppCompatActivity {
                         if (mCounter < 10) {
 
                             if (mState != 0 && mState != 4) {
-//                                new Identificator(mUser, getApplicationContext()).predict(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
-//                                AnomalyDetector ad = new AnomalyDetector(mUser, getApplicationContext());
-//
-//                                boolean isUser;
-//                                if (mIsNumPassword)
-//                                    isUser = ad.evaluateEntry(mKeyBuffer, Helper.NUM_PASSWORD_CODE);
-//                                else
-//                                    isUser = ad.evaluateEntry(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
-//
-//                                Toast.makeText(getApplicationContext(), "Is user : " + isUser, Toast.LENGTH_SHORT).show();
 
                                 mKeyController.save(mKeyBuffer, mState, 0);
 
@@ -450,8 +440,14 @@ public class TrainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Log.d(TAG, "START");
+                        if (mIsIdentify) {
+                            new Train(getApplicationContext(), mUser).trainIdentification(Helper.ALNUM_PASSWORD_CODE);
+                        } else {
+                            new Train(getApplication(), mUser).trainUser(Helper.ALNUM_PASSWORD_CODE);
+                        }
 //                        new Train(getApplicationContext(), mUser).trainIdentification(Helper.ALNUM_PASSWORD_CODE);
-                        new Train(getApplication(), mUser).trainUser(Helper.ALNUM_PASSWORD_CODE);
+//                        new Train(getApplication(), mUser).trainUser(Helper.ALNUM_PASSWORD_CODE);
+
                         Log.d(TAG, "STOP");
                     }
                 }).start();
@@ -477,8 +473,14 @@ public class TrainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Log.d(TAG, "START");
+                        if (mIsIdentify) {
+                            new Train(getApplicationContext(), mUser).trainIdentification(Helper.NUM_PASSWORD_CODE);
+                        } else {
+                            new Train(getApplication(), mUser).trainUser(Helper.NUM_PASSWORD_CODE);
+                        }
 //                        new Train(getApplicationContext(), mUser).trainIdentification(Helper.NUM_PASSWORD_CODE);
-                        new Train(getApplication(), mUser).trainUser(Helper.NUM_PASSWORD_CODE);
+//                        new Train(getApplication(), mUser).trainUser(Helper.NUM_PASSWORD_CODE);
+
                         Log.d(TAG, "STOP");
                     }
                 }).start();

@@ -138,7 +138,8 @@ public class LoginActivity extends AppCompatActivity {
                         else
                             isUser = ad.evaluateEntry(mKeyBuffer, Helper.ALNUM_PASSWORD_CODE);
 
-                        Toast.makeText(getApplicationContext(), "Successful login : " + isUser, Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), "Successful login : " + isUser, Toast.LENGTH_SHORT).show();
+                        showAlertDialog("Successful login : " + isUser);
 
                         List<String> output = new ArrayList<>();
                         output.add(mActiveUser);
@@ -280,7 +281,7 @@ public class LoginActivity extends AppCompatActivity {
      */
     private void showAlertDialog(String message) {
         AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
-        alertDialog.setTitle("Password");
+        alertDialog.setTitle("Authentication");
         alertDialog.setMessage(message);
         alertDialog.setCancelable(false);
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",

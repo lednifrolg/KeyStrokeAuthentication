@@ -77,33 +77,35 @@ public class KeyController {
 
         List<String> columns = new ArrayList<>();
         List<String> columns2;
+        int passwordCode = isNumeric ? Helper.NUM_PASSWORD_CODE : Helper.ALNUM_PASSWORD_CODE;
+        columns = getLabels(keyBuffer, passwordCode);
 
-        for (int i = 0; i < bufferSize; i++) {
-            columns.add("xCoordPress" + i);
-            columns.add("yCoordPress" + i);
+//        for (int i = 0; i < bufferSize; i++) {
+//            columns.add("xCoordPress" + i);
+//            columns.add("yCoordPress" + i);
+//
+//            if (!isNumeric) {
+//                columns.add("xCoordRelease" + i);
+//                columns.add("yCoordRelease" + i);
+//            }
+//
+//            columns.add("pressPressure" + i);
+//            columns.add("releasePressure" + i);
+//            columns.add("holdTime" + i);
+//            columns.add("HPP" + i);
+//
+//            if (!isNumeric) {
+//                columns.add("offSet" + i);
+//            }
+//        }
+//
+//        for (int i = 0; i < bufferSize - 1; i++) {
+//            columns.add("PPTime" + i);
+//            columns.add("UDTime" + i);
+//        }
 
-            if (!isNumeric) {
-                columns.add("xCoordRelease" + i);
-                columns.add("yCoordRelease" + i);
-            }
 
-            columns.add("pressPressure" + i);
-            columns.add("releasePressure" + i);
-            columns.add("holdTime" + i);
-            columns.add("HPP" + i);
-
-            if (!isNumeric) {
-                columns.add("offSet" + i);
-            }
-        }
-
-        for (int i = 0; i < bufferSize - 1; i++) {
-            columns.add("PPTime" + i);
-            columns.add("UDTime" + i);
-        }
-
-
-        if (mUser.getPassword().equals(Helper.STATIC_PASSWORD)) {
+        if (mUser.getPassword().equals(Helper.STATIC_PASSWORD) || mUser.getPassword().equals(Helper.STATIC_NUM_PASSWORD)) {
             columns2 = new ArrayList<>(columns);
             columns2.add("name");
             write(columns2, classificationFile, keyBuffer, 0, isNumeric);

@@ -186,17 +186,27 @@ public class StartActivity extends AppCompatActivity {
         });
 
 
-        SharedPreferences settings = getSharedPreferences(Helper.MY_PREFS_FILE_NAME, 0);
+        final SharedPreferences settings = getSharedPreferences(Helper.MY_PREFS_FILE_NAME, 0);
 
         if (settings.getBoolean(Helper.MY_PREFS_FIRST_USE, true)) {
             Log.d(TAG, "First use");
-            copyAssets();
-            //trainLegitModels();
-            settings.edit().putBoolean("my_first_time", false).commit();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    copyAssets();
+                    trainLegitModels();
+                    settings.edit().putBoolean(Helper.MY_PREFS_FIRST_USE, false).commit();
+                }
+            }).start();
+
         }
 
     }
 
+
+    /**
+     * Train models for experiment
+     */
     private void trainLegitModels() {
         new Train(getApplication(), mDbHelper.getUser("h1053055", "na925125TO")).trainUser(Helper.ALNUM_PASSWORD_CODE);
         new Train(getApplication(), mDbHelper.getUser("xvalastiak", "valdy550")).trainUser(Helper.ALNUM_PASSWORD_CODE);
@@ -241,15 +251,23 @@ public class StartActivity extends AppCompatActivity {
         //finish();
     }
 
+    /**
+     * copy user files for experiment
+     */
     private void copyAssets() {
         AssetManager assetManager = getAssets();
         try {
             String[] files = assetManager.list("");
             for (String f : files) {
                 Log.d("TAG", f);
-                FileOutputStream outputStream = mContext.openFileOutput(f, Context.MODE_PRIVATE);
-                InputStream in = assetManager.open(f);
-                copyFile(in, outputStream);
+                if (f.length() == 3)
+                    continue;
+
+                if (f.substring(f.length() - 3).equals("csv")) {
+                    FileOutputStream outputStream = mContext.openFileOutput(f, Context.MODE_PRIVATE);
+                    InputStream in = assetManager.open(f);
+                    copyFile(in, outputStream);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

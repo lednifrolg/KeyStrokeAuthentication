@@ -61,6 +61,8 @@ public class ExperimentRandomizer {
         mNumUsers.add(dbHelper.getUser("xfarkast", "193561"));
     }
 
+
+
     public User getAlNumUser() {
         int randomNum = ThreadLocalRandom.current().nextInt(0, mAlNumUsers.size());
 

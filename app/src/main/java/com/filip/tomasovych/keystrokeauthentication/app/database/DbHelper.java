@@ -168,11 +168,17 @@ public class DbHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY (" + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + ") REFERENCES " + TABLE_EXPERIMENT_TYPE + "(" + EXPERIMENT_TYPE_ID + ")" +
                 ")";
 
-//        db.execSQL(CREATE_USER_TABLE);
-//        db.execSQL(CREATE_EXPERIMENT_TYPE_TABLE);
-//        db.execSQL(CREATE_EXPERIMENT_TABLE);
-//        db.execSQL(CREATE_KEY_DATA_TABLE);
+        db.execSQL(CREATE_USER_TABLE);
+        db.execSQL(CREATE_EXPERIMENT_TYPE_TABLE);
+        db.execSQL(CREATE_EXPERIMENT_TABLE);
+        db.execSQL(CREATE_KEY_DATA_TABLE);
         db.execSQL(CREATE_OUTLIER_THRESHOLD_TABLE);
+
+        User identAlnum = new User("initialUserAlnum", Helper.STATIC_PASSWORD);
+        User identNum = new User("initialUserNum", Helper.STATIC_NUM_PASSWORD);
+        inserInitUser(identAlnum, db);
+        inserInitUser(identNum, db);
+        initExperimentUsers(db);
     }
 
     /**
@@ -203,7 +209,7 @@ public class DbHelper extends SQLiteOpenHelper {
             Log.d(TAG, "OLDVERSION DB != NEWVERSION");
 //            db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERdETAIL);
 //            db.execSQL("CREATE UNIQUE INDEX idx_twocols ON " + TABLE_OUTLIER_THRESHOLD + "(" + OUTLIER_THRESHOLD_ID_USER + ", " + OUTLIER_THRESHOLD_EXPERIMENT_TYPE_ID + ")");
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_OUTLIER_THRESHOLD);
+//            db.execSQL("DROP TABLE IF EXISTS " + TABLE_OUTLIER_THRESHOLD);
             onCreate(db);
         }
     }
@@ -336,6 +342,71 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     public long insertUser(User user) {
         SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+
+        long result = 0;
+
+        try {
+            ContentValues values = new ContentValues();
+
+            values.put(USER_NAME, user.getName());
+            values.put(USER_PASSWORD, user.getPassword());
+
+            result = db.insertOrThrow(TABLE_USER, null, values);
+            db.setTransactionSuccessful();
+
+            Log.d(TAG, "insertUser values : " + values.toString());
+            Log.d(TAG, "insertUser result : " + result);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Log.d(TAG, "Error while trying to add user to database");
+            result = -1;
+        } finally {
+            db.endTransaction();
+        }
+
+        return result;
+    }
+
+    private void initExperimentUsers(SQLiteDatabase db) {
+        inserInitUser(new User("h1053055", "na925125TO"), db);
+        inserInitUser(new User("xvalastiak", "valdy550"), db);
+        inserInitUser(new User("xgono", "silneheslo321"), db);
+        inserInitUser(new User("xcagan", "lolecbolec"), db);
+        inserInitUser(new User("tabora1", "pokemon"), db);
+        inserInitUser(new User("xmadzik", "lukasmadzik"), db);
+        inserInitUser(new User("xhagaral", "kalach"), db);
+        inserInitUser(new User("xGavornik", "kubko23"), db);
+        inserInitUser(new User("xkollarova", "autovobis"), db);
+        inserInitUser(new User("xlibantova", "dominika1992"), db);
+        inserInitUser(new User("xguilisi", "150igs"), db);
+        inserInitUser(new User("xfarkast", "huawei"), db);
+        inserInitUser(new User("xwolfm", "mirowolf"), db);
+        inserInitUser(new User("xtomasova", "pecora"), db);
+        inserInitUser(new User("xbesedova", "Besedova"), db);
+        inserInitUser(new User("xvnencak", "stanislav7"), db);
+        inserInitUser(new User("werther", "password"), db);
+
+        inserInitUser(new User("xhagaral", "102016"), db);
+        inserInitUser(new User("h1053055", "925125"), db);
+        inserInitUser(new User("xkollarova", "240800"), db);
+        inserInitUser(new User("xbesedova", "225566"), db);
+        inserInitUser(new User("xgono", "170993"), db);
+        inserInitUser(new User("xGavornik", "120519"), db);
+        inserInitUser(new User("xvalastiak", "550550"), db);
+        inserInitUser(new User("xlibantova", "654321"), db);
+        inserInitUser(new User("xtomasova", "280690"), db);
+        inserInitUser(new User("xmadzik", "1235789510"), db);
+        inserInitUser(new User("xwolfm", "2131991"), db);
+        inserInitUser(new User("xgulisi", "1502505"), db);
+        inserInitUser(new User("werther", "258456"), db);
+        inserInitUser(new User("xtabora", "861992"), db);
+        inserInitUser(new User("xvnencak", "4014142374"), db);
+        inserInitUser(new User("xcagan2", "010593"), db);
+        inserInitUser(new User("xfarkast", "193561"), db);
+    }
+
+    private long inserInitUser(User user, SQLiteDatabase db) {
         db.beginTransaction();
 
         long result = 0;

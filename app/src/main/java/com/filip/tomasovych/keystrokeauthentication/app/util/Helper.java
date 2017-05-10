@@ -16,6 +16,8 @@ public final class Helper {
     public static String IS_EXPERIMENT = "IsExperiment";
     public final static int NUM_PASSWORD_CODE = 0x0000;
     public final static int ALNUM_PASSWORD_CODE = 0x0001;
+    public final static String MY_PREFS_FILE_NAME = "keystrokeauthentication_PREFS";
+    public final static String MY_PREFS_FIRST_USE = "FIRST_USE";
 
     public static boolean isNumeric(String s) {
         return s.matches("\\d*");

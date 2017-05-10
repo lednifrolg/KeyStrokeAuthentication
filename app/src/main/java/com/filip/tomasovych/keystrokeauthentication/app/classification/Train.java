@@ -564,7 +564,7 @@ public class Train {
             //svm.setOptions(weka.core.Utils.splitOptions("-S 0 -K 0 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 40.0 -C 1.0 -E 0.001 -P 0.1"));
             svm.buildClassifier(data);
 
-            FileOutputStream outputStream = mContext.openFileOutput(modelName, Context.MODE_APPEND);
+            FileOutputStream outputStream = mContext.openFileOutput(modelName,  Context.MODE_PRIVATE | Context.MODE_APPEND);
             SerializationHelper.write(outputStream, svm);
         } catch (Exception e) {
             e.printStackTrace();

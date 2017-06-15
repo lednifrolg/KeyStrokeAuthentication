@@ -442,8 +442,10 @@ public class TrainActivity extends AppCompatActivity {
                         Log.d(TAG, "START");
                         if (mIsIdentify) {
                             new Train(getApplicationContext(), mUser).trainIdentification(Helper.ALNUM_PASSWORD_CODE);
+                            Toast.makeText(getBaseContext(), "Training Done", Toast.LENGTH_SHORT).show();
                         } else {
                             new Train(getApplication(), mUser).trainUser(Helper.ALNUM_PASSWORD_CODE);
+                            Toast.makeText(getBaseContext(), "Training Done", Toast.LENGTH_SHORT).show();
                         }
 //                        new Train(getApplicationContext(), mUser).trainIdentification(Helper.ALNUM_PASSWORD_CODE);
 //                        new Train(getApplication(), mUser).trainUser(Helper.ALNUM_PASSWORD_CODE);

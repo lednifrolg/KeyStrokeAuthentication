@@ -296,7 +296,7 @@ public class Train {
         double mean = mean(distances);
         double std = stDev(distances, mean);
 
-        threshold = min - Math.abs(mean / 2) + std - 7;
+        threshold = min - Math.abs(mean / 2) + std - 12;
 
         mDbHelper.setThresholdValue(state, mUser, threshold);
     }
@@ -619,7 +619,7 @@ public class Train {
             svm.buildClassifier(data);
 
             String modelName = null;
-            FileOutputStream outputStream = mContext.openFileOutput(state + name + "SVM", Context.MODE_APPEND);
+            FileOutputStream outputStream = mContext.openFileOutput(state + name + "SVM", Context.MODE_PRIVATE);
             SerializationHelper.write(outputStream, svm);
         } catch (Exception e) {
             e.printStackTrace();
